@@ -277,6 +277,24 @@ When agents actively write these entry types, the smart context engine in
 summaries. This is where the plugin's value multiplies — agents stop being
 isolated workers and start forming a knowledge graph across time and sessions.
 
+### Lessons from the Build Session
+This project was built in a single extended Claude Code session (Phase 1→4).
+The session itself proved why clnode is needed:
+
+1. Context hit limits during sequential Phase 1→4 implementation
+2. Session was cut off and had to continue via summary-based handoff
+3. Missing info from summary required re-reading files from scratch
+
+If clnode had been active from the start with each Phase as a subagent:
+- Phase 1 agent stop → DB stores "Hono server + DuckDB 7 tables + CLI done"
+- Phase 2 agent start → receives Phase 1 results via `additionalContext`
+- Session cut → new session recovers everything via cross-session context
+- Leader only says "do Phase 2" → context stays minimal
+
+The real test is next session: spawn 3 subagents in parallel from the start,
+verify `additionalContext` injection works end-to-end, and confirm the Leader
+context stays clean throughout.
+
 ### Remaining Work
 - Verify hooks fire in a fresh Claude Code session (see checklist above)
 - Add `GET /api/stats` to web API client and Dashboard page
