@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { getAllSessions, getActiveSessions, getSession, getTotalSessionsCount, getActiveSessionsCount } from "../services/session.js";
 import { getAllAgents, getActiveAgents, getAgentsBySession, getTotalAgentsCount, getActiveAgentsCount, deleteAgent } from "../services/agent.js";
-import { getContextBySession, getTotalContextEntriesCount } from "../services/context.js";
+import { getContextBySession, getTotalContextEntriesCount, deleteContextByType } from "../services/context.js";
 import { getFileChangesBySession, getTotalFileChangesCount } from "../services/filechange.js";
 import { getAllTasks, getTasksByProject } from "../services/task.js";
 import { getRecentActivities, getActivitiesBySession } from "../services/activity.js";
@@ -26,6 +26,12 @@ api.get("/sessions/:id", async (c) => {
 
 api.get("/sessions/:id/agents", async (c) => c.json(await getAgentsBySession(c.req.param("id"))));
 api.get("/sessions/:id/context", async (c) => c.json(await getContextBySession(c.req.param("id"))));
+api.delete("/sessions/:id/context", async (c) => {
+  const entryType = c.req.query("entry_type");
+  if (!entryType) return c.json({ error: "entry_type query param required" }, 400);
+  const deleted = await deleteContextByType(c.req.param("id"), entryType);
+  return c.json({ ok: true, deleted });
+});
 api.get("/sessions/:id/files", async (c) => c.json(await getFileChangesBySession(c.req.param("id"))));
 api.get("/sessions/:id/activities", async (c) => c.json(await getActivitiesBySession(c.req.param("id"))));
 

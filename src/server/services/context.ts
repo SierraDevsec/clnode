@@ -64,6 +64,19 @@ export async function getCrossSessionContext(sessionId: string, limit: number = 
   );
 }
 
+export async function deleteContextByType(sessionId: string, entryType: string): Promise<number> {
+  const db = await getDb();
+  const result = await db.all(
+    `SELECT COUNT(*) as count FROM context_entries WHERE session_id = ? AND entry_type = ?`,
+    sessionId, entryType
+  );
+  await db.run(
+    `DELETE FROM context_entries WHERE session_id = ? AND entry_type = ?`,
+    sessionId, entryType
+  );
+  return Number(result[0]?.count ?? 0);
+}
+
 export async function getTotalContextEntriesCount() {
   const db = await getDb();
   const result = await db.all(`SELECT COUNT(*) as count FROM context_entries`);

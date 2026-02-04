@@ -97,10 +97,7 @@ hooks.post("/:event", async (c) => {
           if (contextSummary) {
             await addContextEntry(sessionId, agentId, "agent_summary", contextSummary, ["auto", agentName]);
           }
-          // Store transcript path as context entry for future reference
-          if (agentTranscriptPath) {
-            await addContextEntry(sessionId, agentId, "transcript_path", agentTranscriptPath, ["auto", agentName]);
-          }
+          // transcript_path is no longer stored as context — summary is extracted directly
 
           // Phase 3: Todo Enforcer — check incomplete tasks
           const warning = await checkIncompleteTasks(sessionId, agentId, agentName);
