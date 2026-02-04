@@ -6,11 +6,25 @@ One solo developer can work like a 5-person team. Backend, frontend, reviewer, a
 
 No API keys. No extra model costs. No configuration. Just `clnode init`.
 
-## Why clnode?
+## The Problem
 
-Claude Code already supports multi-agent mode — but agents **cannot communicate with each other**. Every result, every review cycle, every handoff must flow through the Leader agent. Its context explodes. It loses track. The whole system grinds to a halt.
+We were using Claude Code's multi-agent mode on a real project — a Leader agent delegating to backend, frontend, and reviewer agents in parallel.
 
-clnode fixes this using only two features Claude Code already provides — **hooks** and **skills** — to build a swarm layer on top of vanilla Claude Code. No custom framework. No wrapper. Just a plugin that fills the exact gap in the existing system.
+It worked great at first. Then the reviewer found issues.
+
+The reviewer's feedback had to go back to the Leader. The Leader re-assigned the work. The implementer fixed it. The result went back through the Leader. The reviewer checked again. Failed again. Back to the Leader.
+
+**Every round-trip piled context onto the Leader.** After a few review cycles, the Leader's context window was full. It started losing track of what was done, what was pending, and what failed. The whole session collapsed.
+
+The root cause was simple: **agents cannot talk to each other.** Everything must flow through the Leader, and the Leader becomes the bottleneck.
+
+## The Solution
+
+We noticed Claude Code already provides two features — **hooks** (lifecycle event interceptors) and **skills** (agent role definitions). Hooks can inject `additionalContext` into agents via stdout. That's all we needed.
+
+clnode uses hooks to intercept agent lifecycle events and DuckDB as shared memory. When Agent A finishes, its summary goes to DB. When Agent B starts, it receives A's summary automatically — no Leader relay needed.
+
+No custom framework. No wrapper. Just a plugin that fills the exact gap in the existing system.
 
 ```
 Agent A finishes → saves summary to DB
