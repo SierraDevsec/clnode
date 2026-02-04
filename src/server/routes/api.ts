@@ -3,7 +3,7 @@ import { getAllSessions, getActiveSessions, getSession, getTotalSessionsCount, g
 import { getAllAgents, getActiveAgents, getAgentsBySession, getTotalAgentsCount, getActiveAgentsCount, deleteAgent } from "../services/agent.js";
 import { getContextBySession, getTotalContextEntriesCount, deleteContextByType } from "../services/context.js";
 import { getFileChangesBySession, getTotalFileChangesCount } from "../services/filechange.js";
-import { getAllTasks, getTasksByProject } from "../services/task.js";
+import { getAllTasks, getTasksByProject, createTask, updateTask, deleteTask } from "../services/task.js";
 import { getRecentActivities, getActivitiesBySession } from "../services/activity.js";
 import { getAllProjects } from "../services/project.js";
 
