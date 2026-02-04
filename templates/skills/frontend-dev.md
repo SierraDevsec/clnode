@@ -22,3 +22,9 @@ Provide a clear summary of:
 2. New routes added
 3. Any new dependencies introduced
 4. Known UI issues or responsive breakpoints to test
+
+## Swarm Context (clnode)
+Record important context via `POST /hooks/PostContext` when applicable:
+- **decision**: UI/UX choices (e.g., "Used flex-1 instead of fixed width for responsive kanban")
+- **blocker**: Issues preventing progress (e.g., "API returns 500 on task creation")
+- **handoff**: Work ready for another agent (e.g., "UI components ready, needs backend API for comments")

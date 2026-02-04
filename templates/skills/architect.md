@@ -23,3 +23,9 @@ Provide a clear summary of:
 3. API contracts or interface definitions
 4. Risks identified and mitigation strategies
 5. Recommended implementation order
+
+## Swarm Context (clnode)
+Record important context via `POST /hooks/PostContext` when applicable:
+- **decision**: All architecture decisions should be recorded for cross-session persistence
+- **blocker**: Technical constraints discovered (e.g., "DuckDB doesn't support concurrent writers")
+- **handoff**: Implementation plan for agents (e.g., "Schema design ready, backend-dev can start migration")

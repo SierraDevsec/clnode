@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { api, type Session, type Agent, type Activity, formatTime } from "../lib/api";
+import { api, type Session, type Agent, type Activity, type Stats, formatTime } from "../lib/api";
 import { useWebSocket } from "../lib/useWebSocket";
 
 export default function Dashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [subagentOnly, setSubagentOnly] = useState(false);
   const { connected, events, reconnectCount } = useWebSocket();
 
@@ -14,10 +15,12 @@ export default function Dashboard() {
       api.sessions(true),
       api.agents(true),
       api.activities(20),
-    ]).then(([s, a, act]) => {
+      api.stats(),
+    ]).then(([s, a, act, st]) => {
       setSessions(s);
       setAgents(a);
       setActivities(act);
+      setStats(st);
     });
   };
 
@@ -34,9 +37,13 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Active Sessions" value={sessions.length} />
-        <StatCard label="Active Agents" value={agents.length} />
-        <StatCard label="Recent Events" value={events.length} />
+        <StatCard label="Active Sessions" value={sessions.length} sub={stats ? `/ ${stats.total_sessions} total` : undefined} />
+        <StatCard label="Active Agents" value={agents.length} sub={stats ? `/ ${stats.total_agents} total` : undefined} />
+        <StatCard label="Context Entries" value={stats?.total_context_entries ?? 0} />
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard label="File Changes" value={stats?.total_file_changes ?? 0} />
+        <StatCard label="Live Events" value={events.length} />
       </div>
 
       <div className="grid grid-cols-2 gap-6">
@@ -79,10 +86,13 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <div className="text-3xl font-bold text-white">{value}</div>
+      <div className="flex items-baseline gap-2">
+        <div className="text-3xl font-bold text-white">{value}</div>
+        {sub && <div className="text-xs text-gray-600">{sub}</div>}
+      </div>
       <div className="text-sm text-gray-400 mt-1">{label}</div>
     </div>
   );

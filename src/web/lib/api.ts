@@ -95,6 +95,15 @@ export interface TaskComment {
   created_at: string;
 }
 
+export interface Stats {
+  total_sessions: number;
+  active_sessions: number;
+  total_agents: number;
+  active_agents: number;
+  total_context_entries: number;
+  total_file_changes: number;
+}
+
 export interface Activity {
   id: number;
   session_id: string;
@@ -144,4 +153,5 @@ export const api = {
   addTaskComment: (taskId: number, data: { content: string; author?: string; comment_type?: string }) =>
     post<{ ok: boolean; id: number }>(`/tasks/${taskId}/comments`, data),
   activities: (limit?: number) => get<Activity[]>(`/activities${limit ? `?limit=${limit}` : ""}`),
+  stats: () => get<Stats>("/stats"),
 };

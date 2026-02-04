@@ -8,10 +8,12 @@ const program = new Command();
 
 const CLNODE_PORT = parseInt(process.env.CLNODE_PORT ?? "3100", 10);
 const CLNODE_URL = `http://localhost:${CLNODE_PORT}`;
-const PID_FILE = path.resolve(
+const DATA_DIR = path.resolve(
   import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-  "../../data/clnode.pid"
+  "../../data"
 );
+const PID_FILE = path.join(DATA_DIR, "clnode.pid");
+const LOG_FILE = path.join(DATA_DIR, "clnode.log");
 
 program
   .name("clnode")
@@ -43,11 +45,14 @@ program
       : serverEntry;
 
     const env = { ...process.env, CLNODE_PORT: opts.port };
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const logFd = fs.openSync(LOG_FILE, "a");
     const child = spawn(cmd, [actualEntry], {
       env,
       detached: true,
-      stdio: "ignore",
+      stdio: ["ignore", logFd, logFd],
     });
+    fs.closeSync(logFd);
 
     child.unref();
 
@@ -214,6 +219,28 @@ program
     console.log(`[clnode] Next steps:`);
     console.log(`  1. Start the daemon: clnode start`);
     console.log(`  2. Restart your Claude Code session (hooks activate on session start)`);
+  });
+
+// clnode logs
+program
+  .command("logs")
+  .description("Tail daemon logs")
+  .option("-n, --lines <lines>", "Number of lines to show", "50")
+  .option("-f, --follow", "Follow log output")
+  .action((opts) => {
+    if (!fs.existsSync(LOG_FILE)) {
+      console.log("[clnode] No log file found. Start the daemon first.");
+      return;
+    }
+
+    const args = ["-n", opts.lines];
+    if (opts.follow) args.push("-f");
+    args.push(LOG_FILE);
+
+    const tail = spawn("tail", args, { stdio: "inherit" });
+    tail.on("error", () => {
+      console.error("[clnode] Failed to run tail command");
+    });
   });
 
 // clnode ui

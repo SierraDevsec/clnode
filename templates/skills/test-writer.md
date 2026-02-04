@@ -23,3 +23,9 @@ Provide a clear summary of:
 2. Total tests added and pass/fail status
 3. Coverage areas addressed
 4. Any untestable areas or known gaps
+
+## Swarm Context (clnode)
+Record important context via `POST /hooks/PostContext` when applicable:
+- **decision**: Testing strategy choices (e.g., "Mocking DuckDB with in-memory DB for unit tests")
+- **blocker**: Untestable areas (e.g., "Cannot test WebSocket broadcast without integration setup")
+- **handoff**: Coverage gaps for future work (e.g., "Hook error paths not covered, needs mock server")

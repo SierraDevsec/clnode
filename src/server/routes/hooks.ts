@@ -181,6 +181,19 @@ hooks.post("/:event", async (c) => {
         });
       }
 
+      case "PostContext": {
+        const agentId = body.agent_id ?? null;
+        const entryType = body.entry_type ?? "note";
+        const content = body.content ?? "";
+        const tags = body.tags ?? null;
+        if (content) {
+          await addContextEntry(sessionId, agentId, entryType, content, tags);
+          await logActivity(sessionId, agentId, "PostContext", { entry_type: entryType });
+          broadcast("PostContext", { session_id: sessionId, entry_type: entryType });
+        }
+        return c.json({ ok: true });
+      }
+
       case "RegisterProject": {
         const pid = body.project_id ?? crypto.randomUUID();
         const pname = body.project_name ?? "unknown";
