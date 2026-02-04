@@ -117,24 +117,21 @@ program
 program
   .command("init [targetPath]")
   .description("Install lifecycle hooks in the target project")
-  .action(async (targetPath?: string) => {
+  .option("-s, --with-skills", "Copy agent skill templates to .claude/skills/")
+  .action(async (targetPath: string | undefined, opts: { withSkills?: boolean }) => {
     const target = targetPath ? path.resolve(targetPath) : process.cwd();
     const projectName = path.basename(target);
     const projectId = projectName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-    const hookScript = path.resolve(
-      import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-      "../hooks/hook.sh"
-    );
+    const baseDir = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+    // hook.sh lives in src/hooks/ (included in npm package via files field)
+    const hookScript = path.resolve(baseDir, "../../src/hooks/hook.sh");
     fs.chmodSync(hookScript, 0o755);
 
     const claudeDir = path.join(target, ".claude");
     fs.mkdirSync(claudeDir, { recursive: true });
 
-    const templatePath = path.resolve(
-      import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-      "../../templates/hooks-config.json"
-    );
+    const templatePath = path.resolve(baseDir, "../../templates/hooks-config.json");
     const templateRaw = fs.readFileSync(templatePath, "utf-8");
     const hooksConfig = JSON.parse(templateRaw.replaceAll("HOOK_SCRIPT_PATH", hookScript));
 
@@ -147,6 +144,25 @@ program
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
     console.log(`[clnode] Hooks installed to ${settingsPath}`);
     console.log(`[clnode] hook.sh path: ${hookScript}`);
+
+    // Copy skill templates if requested
+    if (opts.withSkills) {
+      const skillsSourceDir = path.resolve(baseDir, "../../templates/skills");
+      const skillsTargetDir = path.join(claudeDir, "skills");
+
+      if (fs.existsSync(skillsSourceDir)) {
+        fs.mkdirSync(skillsTargetDir, { recursive: true });
+        const skillFiles = fs.readdirSync(skillsSourceDir).filter((f: string) => f.endsWith(".md"));
+        for (const file of skillFiles) {
+          const dest = path.join(skillsTargetDir, file);
+          if (!fs.existsSync(dest)) {
+            fs.copyFileSync(path.join(skillsSourceDir, file), dest);
+            console.log(`[clnode] Skill template copied: ${file}`);
+          }
+        }
+        console.log(`[clnode] ${skillFiles.length} skill templates installed to ${skillsTargetDir}`);
+      }
+    }
 
     try {
       await fetch(`${CLNODE_URL}/api/health`);
@@ -161,6 +177,8 @@ program
     } catch {
       console.log(`[clnode] Daemon not running — project will be registered on first hook event`);
     }
+
+    console.log(`\n[clnode] Setup complete! Start the daemon with: clnode start`);
   });
 
 // clnode ui

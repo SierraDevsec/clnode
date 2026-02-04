@@ -141,6 +141,13 @@ hooks.post("/:event", async (c) => {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[hooks/${event}] Error:`, msg);
+    // SubagentStart must always return hookSpecificOutput structure
+    if (event === "SubagentStart") {
+      return c.json({ hookSpecificOutput: { hookEventName: "SubagentStart" } });
+    }
+    if (event === "UserPromptSubmit") {
+      return c.json({ hookSpecificOutput: { hookEventName: "UserPromptSubmit" } });
+    }
     return c.json({});
   }
 });

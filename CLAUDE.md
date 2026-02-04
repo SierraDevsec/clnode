@@ -221,8 +221,29 @@ clnode ui          # Open Web UI in browser
 - [x] **Todo Enforcer** — SubagentStop checks incomplete tasks, logs warning to context_entries
 - [x] **UserPromptSubmit auto-attach** — returns project context (active agents, open tasks, decisions, completed summaries)
 
-### Phase 4: Polish & Distribution
-- Error handling + graceful fallbacks
-- npm package distribution (`npx clnode start`)
-- README + usage guide
-- Template skills for common team structures
+## Phase 4 Status: Complete
+- [x] **npm package config** — files, keywords, license, prepublishOnly, bin
+- [x] **Error handling** — hook.sh 3s timeout + jq check, hooks.ts error fallback for SubagentStart/UserPromptSubmit, server EADDRINUSE/DuckDB error messages
+- [x] **README.md** — Quick Start, architecture, CLI commands, API reference
+- [x] **Template skills** — 5 agent role templates (backend-dev, frontend-dev, reviewer, test-writer, architect)
+- [x] **`clnode init --with-skills`** — copies skill templates to target project
+
+## Next Steps
+
+### Dogfooding
+Use clnode to develop clnode itself. Run `clnode init` on this repo and use
+multi-agent mode with the plugin active. This will surface real-world edge cases
+and validate the full lifecycle (context injection, cross-session persistence,
+Todo Enforcer) under actual development pressure.
+
+### Skill Rules for Structured Context Entries
+Define skill rules that instruct agents to write structured context entries
+using specific `entry_type` values:
+- **`decision`** — architectural or implementation decisions with rationale
+- **`blocker`** — issues that block progress and need resolution
+- **`handoff`** — explicit notes for the next agent taking over related work
+
+When agents actively write these entry types, the smart context engine in
+`intelligence.ts` can select truly relevant context instead of just recent
+summaries. This is where the plugin's value multiplies — agents stop being
+isolated workers and start forming a knowledge graph across time and sessions.

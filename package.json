@@ -1,11 +1,26 @@
 {
   "name": "clnode",
   "version": "0.1.0",
-  "description": "Claude Code hook monitoring daemon with DuckDB + Hono",
+  "description": "Claude Code swarm intelligence plugin — shared memory for multi-agent coordination via hooks + DuckDB",
   "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "swarm",
+    "multi-agent",
+    "hooks",
+    "duckdb",
+    "coordination",
+    "cli"
+  ],
   "bin": {
     "clnode": "./dist/cli/index.js"
   },
+  "files": [
+    "dist/",
+    "templates/",
+    "src/hooks/hook.sh"
+  ],
   "scripts": {
     "dev": "tsx src/server/index.ts",
     "dev:cli": "tsx src/cli/index.ts",
@@ -13,6 +28,7 @@
     "build": "tsc && vite build",
     "build:server": "tsc",
     "build:web": "vite build",
+    "prepublishOnly": "pnpm build",
     "start": "node dist/server/index.js",
     "cli": "node dist/cli/index.js"
   },

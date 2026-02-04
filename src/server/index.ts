@@ -84,6 +84,15 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("[clnode] Fatal error:", err);
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("EADDRINUSE")) {
+    console.error(`[clnode] Port ${PORT} is already in use. Is another clnode instance running?`);
+    console.error(`[clnode] Try: clnode stop, or use CLNODE_PORT=<port> clnode start`);
+  } else if (msg.includes("duckdb") || msg.includes("DuckDB")) {
+    console.error(`[clnode] Database error: ${msg}`);
+    console.error(`[clnode] Try deleting data/clnode.duckdb and restarting`);
+  } else {
+    console.error("[clnode] Fatal error:", msg);
+  }
   process.exit(1);
 });
