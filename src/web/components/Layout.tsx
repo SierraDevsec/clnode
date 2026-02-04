@@ -12,7 +12,10 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex">
       <nav className="w-52 bg-gray-900 border-r border-gray-800 p-4 flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-white mb-4 tracking-tight">clnode</h1>
+        <h1 className="text-2xl font-bold text-white mb-4 tracking-tight flex items-center gap-2">
+          <img src="/favicon.svg" alt="" className="w-6 h-6" />
+          CLNODE
+        </h1>
         {links.map((l) => (
           <NavLink
             key={l.to}
