@@ -7,4 +7,6 @@ data/*.duckdb.wal
 .env
 .idea/
 .claude/settings.local.json
+.claude/skills/
 .mcp.json
+data/

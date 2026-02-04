@@ -47,3 +47,15 @@ export async function getAllAgents() {
   const db = await getDb();
   return db.all(`SELECT * FROM agents ORDER BY started_at DESC`);
 }
+
+export async function getTotalAgentsCount() {
+  const db = await getDb();
+  const result = await db.all(`SELECT COUNT(*) as count FROM agents`);
+  return result[0]?.count || 0;
+}
+
+export async function getActiveAgentsCount() {
+  const db = await getDb();
+  const result = await db.all(`SELECT COUNT(*) as count FROM agents WHERE status = 'active'`);
+  return result[0]?.count || 0;
+}

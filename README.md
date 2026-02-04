@@ -58,7 +58,7 @@ clnode init
 clnode ui
 ```
 
-That's it. Claude Code will now automatically coordinate agents through clnode.
+That's it. **Restart your Claude Code session** — hooks activate on session start. Claude Code will now automatically coordinate agents through clnode.
 
 ## How It Works
 

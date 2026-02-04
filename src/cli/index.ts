@@ -178,7 +178,10 @@ program
       console.log(`[clnode] Daemon not running — project will be registered on first hook event`);
     }
 
-    console.log(`\n[clnode] Setup complete! Start the daemon with: clnode start`);
+    console.log(`\n[clnode] Setup complete!`);
+    console.log(`[clnode] Next steps:`);
+    console.log(`  1. Start the daemon: clnode start`);
+    console.log(`  2. Restart your Claude Code session (hooks activate on session start)`);
   });
 
 // clnode ui

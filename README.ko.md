@@ -56,7 +56,7 @@ clnode init
 clnode ui
 ```
 
-끝입니다. Claude Code가 이제 clnode를 통해 에이전트를 자동으로 조율합니다.
+끝입니다. **Claude Code 세션을 재시작하세요** — hooks는 세션 시작 시점에 활성화됩니다. 이후부터 Claude Code가 clnode를 통해 에이전트를 자동으로 조율합니다.
 
 ## 작동 원리
 

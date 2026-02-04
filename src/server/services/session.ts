@@ -35,3 +35,15 @@ export async function getSession(id: string) {
   const rows = await db.all(`SELECT * FROM sessions WHERE id = ?`, id);
   return rows[0] ?? null;
 }
+
+export async function getTotalSessionsCount() {
+  const db = await getDb();
+  const result = await db.all(`SELECT COUNT(*) as count FROM sessions`);
+  return result[0]?.count || 0;
+}
+
+export async function getActiveSessionsCount() {
+  const db = await getDb();
+  const result = await db.all(`SELECT COUNT(*) as count FROM sessions WHERE status = 'active'`);
+  return result[0]?.count || 0;
+}

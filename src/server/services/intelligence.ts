@@ -28,10 +28,20 @@ interface TaskRow {
   assigned_to: string | null;
 }
 
+async function safeQuery<T>(label: string, fn: () => Promise<unknown[]>): Promise<T[]> {
+  try {
+    return await fn() as T[];
+  } catch (err) {
+    console.error(`[intelligence/${label}] query failed:`, err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
 /**
  * Smart context injection for SubagentStart.
  * Instead of blindly returning recent 10 entries, selects context
  * based on agent role relevance, sibling agents, and cross-session history.
+ * Each query is independently protected — partial results are returned on failure.
  */
 export async function buildSmartContext(
   sessionId: string,
@@ -44,14 +54,14 @@ export async function buildSmartContext(
 
   // 1. Sibling agent summaries (same parent, same session — most relevant)
   if (parentAgentId) {
-    const siblings = await db.all(
+    const siblings = await safeQuery<AgentRow>("siblings", () => db.all(
       `SELECT agent_name, agent_type, context_summary
        FROM agents
        WHERE session_id = ? AND parent_agent_id = ? AND status = 'completed' AND context_summary IS NOT NULL
        ORDER BY completed_at DESC
        LIMIT 5`,
       sessionId, parentAgentId
-    ) as AgentRow[];
+    ));
 
     if (siblings.length > 0) {
       const lines = siblings.map(
@@ -63,7 +73,7 @@ export async function buildSmartContext(
 
   // 2. Same-type agent history (agents with same name/type — learn from predecessors)
   if (agentType) {
-    const sameType = await db.all(
+    const sameType = await safeQuery<AgentRow>("same-type", () => db.all(
       `SELECT agent_name, context_summary, session_id
        FROM agents
        WHERE agent_type = ? AND status = 'completed' AND context_summary IS NOT NULL
@@ -73,7 +83,7 @@ export async function buildSmartContext(
        ORDER BY completed_at DESC
        LIMIT 3`,
       agentType, sessionId, parentAgentId ?? ""
-    ) as AgentRow[];
+    ));
 
     if (sameType.length > 0) {
       const lines = sameType.map(
@@ -84,7 +94,7 @@ export async function buildSmartContext(
   }
 
   // 3. Cross-session context (same project, previous sessions)
-  const crossSession = await db.all(
+  const crossSession = await safeQuery<ContextRow & { agent_name?: string }>("cross-session", () => db.all(
     `SELECT ce.entry_type, ce.content, ce.tags, a.agent_name
      FROM context_entries ce
      LEFT JOIN agents a ON ce.agent_id = a.id
@@ -95,7 +105,7 @@ export async function buildSmartContext(
      ORDER BY ce.created_at DESC
      LIMIT 5`,
     sessionId, sessionId
-  ) as (ContextRow & { agent_name?: string })[];
+  ));
 
   if (crossSession.length > 0) {
     const lines = crossSession.map(
@@ -105,18 +115,19 @@ export async function buildSmartContext(
   }
 
   // 4. Current session context (tagged entries relevant to this agent)
-  const taggedContext = await db.all(
+  const tagParams = [sessionId, agentName, agentType ?? ""];
+  const taggedContext = await safeQuery<ContextRow>("tagged", () => db.all(
     `SELECT entry_type, content, tags
      FROM context_entries
      WHERE session_id = ?
        AND (
-         (tags IS NOT NULL AND (list_contains(tags, ?) OR list_contains(tags, 'all')${agentType ? ` OR list_contains(tags, '${agentType.replace(/'/g, "''")}')` : ""}))
+         (tags IS NOT NULL AND (list_contains(tags, ?) OR list_contains(tags, ?) OR list_contains(tags, 'all')))
          OR entry_type IN ('decision', 'blocker', 'handoff')
        )
      ORDER BY created_at DESC
      LIMIT 5`,
-    sessionId, agentName
-  ) as ContextRow[];
+    ...tagParams
+  ));
 
   if (taggedContext.length > 0) {
     const lines = taggedContext.map(
@@ -127,14 +138,14 @@ export async function buildSmartContext(
 
   // 5. Fallback: if nothing found, use recent session context
   if (sections.length === 0) {
-    const recent = await db.all(
+    const recent = await safeQuery<ContextRow>("recent-fallback", () => db.all(
       `SELECT entry_type, content
        FROM context_entries
        WHERE session_id = ?
        ORDER BY created_at DESC
        LIMIT 5`,
       sessionId
-    ) as ContextRow[];
+    ));
 
     if (recent.length > 0) {
       const lines = recent.map(
@@ -145,14 +156,14 @@ export async function buildSmartContext(
   }
 
   // 6. Active tasks assigned to this agent
-  const tasks = await db.all(
+  const tasks = await safeQuery<TaskRow>("assigned-tasks", () => db.all(
     `SELECT t.title, t.description, t.status
      FROM tasks t
      JOIN sessions s ON t.project_id = s.project_id
      WHERE s.id = ? AND t.assigned_to = ? AND t.status != 'completed'
      ORDER BY t.created_at ASC`,
     sessionId, agentName
-  ) as TaskRow[];
+  ));
 
   if (tasks.length > 0) {
     const lines = tasks.map(
@@ -175,16 +186,17 @@ export async function checkIncompleteTasks(
   agentId: string,
   agentName: string
 ): Promise<string | null> {
-  const db = await getDb();
-
-  const incomplete = await db.all(
-    `SELECT t.title, t.status
-     FROM tasks t
-     JOIN sessions s ON t.project_id = s.project_id
-     WHERE s.id = ? AND t.assigned_to = ? AND t.status NOT IN ('completed', 'cancelled')
-     ORDER BY t.created_at ASC`,
-    sessionId, agentName
-  ) as TaskRow[];
+  const incomplete = await safeQuery<TaskRow>("todo-enforcer", async () => {
+    const db = await getDb();
+    return db.all(
+      `SELECT t.title, t.status
+       FROM tasks t
+       JOIN sessions s ON t.project_id = s.project_id
+       WHERE s.id = ? AND t.assigned_to = ? AND t.status NOT IN ('completed', 'cancelled')
+       ORDER BY t.created_at ASC`,
+      sessionId, agentName
+    );
+  });
 
   if (incomplete.length === 0) return null;
 
@@ -195,6 +207,7 @@ export async function checkIncompleteTasks(
 /**
  * Build project context for UserPromptSubmit.
  * Attaches active tasks, recent decisions, and active agents summary.
+ * Each query is independently protected for partial success.
  */
 export async function buildPromptContext(
   sessionId: string
@@ -203,13 +216,13 @@ export async function buildPromptContext(
   const sections: string[] = [];
 
   // Active agents
-  const activeAgents = await db.all(
+  const activeAgents = await safeQuery<AgentRow>("prompt-agents", () => db.all(
     `SELECT agent_name, agent_type, started_at
      FROM agents
      WHERE session_id = ? AND status = 'active'
      ORDER BY started_at DESC`,
     sessionId
-  ) as AgentRow[];
+  ));
 
   if (activeAgents.length > 0) {
     const lines = activeAgents.map(
@@ -219,7 +232,7 @@ export async function buildPromptContext(
   }
 
   // Pending/in-progress tasks for this project
-  const tasks = await db.all(
+  const tasks = await safeQuery<TaskRow>("prompt-tasks", () => db.all(
     `SELECT t.title, t.status, t.assigned_to
      FROM tasks t
      JOIN sessions s ON t.project_id = s.project_id
@@ -227,7 +240,7 @@ export async function buildPromptContext(
      ORDER BY t.created_at ASC
      LIMIT 10`,
     sessionId
-  ) as TaskRow[];
+  ));
 
   if (tasks.length > 0) {
     const lines = tasks.map(
@@ -237,7 +250,7 @@ export async function buildPromptContext(
   }
 
   // Recent decisions/blockers
-  const decisions = await db.all(
+  const decisions = await safeQuery<ContextRow>("prompt-decisions", () => db.all(
     `SELECT entry_type, content
      FROM context_entries
      WHERE session_id = ?
@@ -245,7 +258,7 @@ export async function buildPromptContext(
      ORDER BY created_at DESC
      LIMIT 5`,
     sessionId
-  ) as ContextRow[];
+  ));
 
   if (decisions.length > 0) {
     const lines = decisions.map(
@@ -255,14 +268,14 @@ export async function buildPromptContext(
   }
 
   // Completed agent summaries (this session)
-  const completedAgents = await db.all(
+  const completedAgents = await safeQuery<AgentRow>("prompt-completed", () => db.all(
     `SELECT agent_name, context_summary
      FROM agents
      WHERE session_id = ? AND status = 'completed' AND context_summary IS NOT NULL
      ORDER BY completed_at DESC
      LIMIT 5`,
     sessionId
-  ) as AgentRow[];
+  ));
 
   if (completedAgents.length > 0) {
     const lines = completedAgents.map(

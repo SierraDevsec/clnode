@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { getAllSessions, getActiveSessions, getSession } from "../services/session.js";
-import { getAllAgents, getActiveAgents, getAgentsBySession } from "../services/agent.js";
-import { getContextBySession } from "../services/context.js";
-import { getFileChangesBySession } from "../services/filechange.js";
+import { getAllSessions, getActiveSessions, getSession, getTotalSessionsCount, getActiveSessionsCount } from "../services/session.js";
+import { getAllAgents, getActiveAgents, getAgentsBySession, getTotalAgentsCount, getActiveAgentsCount } from "../services/agent.js";
+import { getContextBySession, getTotalContextEntriesCount } from "../services/context.js";
+import { getFileChangesBySession, getTotalFileChangesCount } from "../services/filechange.js";
 import { getAllTasks, getTasksByProject } from "../services/task.js";
 import { getRecentActivities, getActivitiesBySession } from "../services/activity.js";
 import { getAllProjects } from "../services/project.js";
@@ -42,6 +42,33 @@ api.get("/tasks", async (c) => {
 api.get("/activities", async (c) => {
   const limit = parseInt(c.req.query("limit") ?? "50", 10);
   return c.json(await getRecentActivities(limit));
+});
+
+api.get("/stats", async (c) => {
+  const [
+    total_sessions,
+    active_sessions,
+    total_agents,
+    active_agents,
+    total_context_entries,
+    total_file_changes
+  ] = await Promise.all([
+    getTotalSessionsCount(),
+    getActiveSessionsCount(),
+    getTotalAgentsCount(),
+    getActiveAgentsCount(),
+    getTotalContextEntriesCount(),
+    getTotalFileChangesCount()
+  ]);
+
+  return c.json({
+    total_sessions,
+    active_sessions,
+    total_agents,
+    active_agents,
+    total_context_entries,
+    total_file_changes
+  });
 });
 
 export default api;
