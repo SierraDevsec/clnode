@@ -1,12 +1,64 @@
-# clnode — Claude Code Hook Monitoring Daemon
+# clnode — Claude Code Swarm Intelligence Plugin
 
-## Overview
-A daemon service that collects, stores, and monitors Claude Code hook events.
-Architecture: Hono server + DuckDB + WebSocket real-time broadcast.
+## Why This Exists
 
-Core feature: **additionalContext injection** — when a subagent starts,
-clnode returns context summaries from previous agents via stdout,
-so Claude Code automatically injects relevant context.
+Claude Code supports multi-agent mode (spawning subagents via the Task tool),
+but **agents cannot communicate with each other**. Each agent runs in an
+isolated context and has no awareness of what other agents are doing or have done.
+
+This creates a critical problem: **the Leader agent's context explodes**.
+When a reviewer finds issues and work needs to be re-assigned, everything
+must flow through the Leader. Every round-trip of "review failed → tell Leader
+→ Leader re-assigns → implementer fixes → send back" piles up context on the
+Leader's window until it hits limits and loses track.
+
+**clnode solves this by externalizing agent coordination state to a local DB.**
+
+Using only two features that Claude Code already provides — **hooks** and
+**skills** — clnode builds a swarm mode layer on top of vanilla Claude Code:
+
+- **hooks** intercept agent lifecycle events and route context through DuckDB
+- **skills** define agent roles, rules, and workflows
+- **DuckDB** acts as shared memory between agents (the communication channel)
+
+When Agent B starts, the SubagentStart hook automatically injects Agent A's
+results via `additionalContext` — no Leader relay needed. The Leader stays lean,
+only making high-level decisions instead of carrying every intermediate result.
+
+**Goal: distribute as an npm plugin** — `clnode init` on any project to enable
+swarm capabilities in Claude Code.
+
+## Architecture
+
+```
+Claude Code Session (no native swarm support)
+│
+├── Agent A starts  ──→  hook ──→  clnode daemon ──→  DuckDB (store)
+├── Agent A stops   ──→  hook ──→  clnode daemon ──→  DuckDB (save summary)
+├── Agent B starts  ──→  hook ──→  clnode daemon ──→  DuckDB (read A's summary)
+│                                       │
+│                                       └──→ stdout: additionalContext
+│                                             (A's results injected into B)
+└── Leader only sees final reports — context stays minimal
+```
+
+## How It Works
+
+1. `clnode start` — daemon starts on port 3100
+2. `clnode init ./project` — installs hooks + skills into target project
+3. Claude Code runs → hooks fire on every agent lifecycle event
+4. hook.sh reads JSON from stdin, POSTs to daemon, returns response via stdout
+5. DuckDB stores all state (agents, context, files, activities)
+6. On SubagentStart: daemon reads previous context from DB → returns `additionalContext`
+7. On SubagentStop: daemon saves agent's work summary to DB
+8. Leader's context stays clean — DB handles the coordination
+
+## Key Insight
+
+**Agents don't talk to each other directly. They talk through time.**
+Agent A finishes and leaves a summary in DB. Agent B starts later and
+receives that summary automatically. The hook system is the message bus,
+DuckDB is the mailbox.
 
 ## Tech Stack
 - **Runtime**: Node.js v22, TypeScript, ESM (type: module)
@@ -147,10 +199,24 @@ clnode ui          # Open Web UI in browser
 - [x] Build verified
 - [x] Full integration test passed
 
-## Next Steps (Phase 2: Web UI)
+## Roadmap
+
+### Phase 2: Web UI
 - React 19 + Vite + TailwindCSS 4
 - Dashboard: active sessions, agents, recent activity timeline
 - Agents: agent tree (parent-child), status filter, context summary
 - Context: full-text search, tag filter, agent filter
 - Tasks: kanban board (pending → in_progress → completed)
 - Activity: real-time WebSocket log, event type filter, file change history
+
+### Phase 3: Intelligence (core value)
+- Smart context injection: select relevant context per agent role, not just recent
+- Cross-session context: persist and reuse context across Claude Code sessions
+- Stop hook → Todo Enforcer: verify task completion before agent stops
+- UserPromptSubmit → auto-attach relevant project context to prompts
+
+### Phase 4: Polish & Distribution
+- Error handling + graceful fallbacks
+- npm package distribution (`npx clnode start`)
+- README + usage guide
+- Template skills for common team structures
