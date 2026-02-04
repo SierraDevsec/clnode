@@ -2,7 +2,9 @@
 
 **Claude Code Swarm Intelligence Plugin** — your own dev team, running 24/7.
 
-One solo developer can work like a 5-person team. Backend, frontend, reviewer, and tester agents run in parallel, automatically passing results to each other. `clnode init` is all it takes.
+One solo developer can work like a 5-person team. Backend, frontend, reviewer, and tester agents run in parallel, automatically passing results to each other.
+
+No API keys. No extra model costs. No configuration. Just `clnode init`.
 
 ## Why clnode?
 
