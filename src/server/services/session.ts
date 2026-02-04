@@ -4,7 +4,8 @@ export async function startSession(id: string, projectId: string | null): Promis
   const db = await getDb();
   await db.run(
     `INSERT INTO sessions (id, project_id) VALUES (?, ?)
-     ON CONFLICT (id) DO UPDATE SET status = 'active', started_at = now()`,
+     ON CONFLICT (id) DO UPDATE SET status = 'active', started_at = now(),
+       project_id = COALESCE(EXCLUDED.project_id, sessions.project_id)`,
     id, projectId
   );
 }
