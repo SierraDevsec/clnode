@@ -1,8 +1,10 @@
-# clnode
+# Claude Code Swarm Intelligence Plugin - clnode : your own dev team, running 24/7.
+
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+![Agents](docs/screenshots/02-agents.png)
 
 [한국어](./README.ko.md) | [사용 가이드 (한국어, 스크린샷 포함)](./docs/GUIDE.md)
-
-**Claude Code Swarm Intelligence Plugin** — your own dev team, running 24/7.
 
 One solo developer can work like a 5-person team. Backend, frontend, reviewer, and tester agents run in parallel, automatically passing results to each other.
 

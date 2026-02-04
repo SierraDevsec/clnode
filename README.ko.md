@@ -1,8 +1,10 @@
-# clnode
+# Claude Code 스웜 인텔리전스 플러그인 - clnode : 나만의 개발팀, 24시간 가동.
+
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+![Agents](docs/screenshots/02-agents.png)
 
 > **[상세 사용 가이드 (스크린샷 포함)](./docs/GUIDE.md)**
-
-**Claude Code 스웜 인텔리전스 플러그인** — 나만의 개발팀, 24시간 가동.
 
 혼자서도 5인 팀처럼 일할 수 있습니다. 백엔드, 프론트엔드, 리뷰어, 테스터 에이전트가 병렬로 돌면서 서로의 결과를 자동으로 이어받습니다.
 
