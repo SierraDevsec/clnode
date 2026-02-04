@@ -1,6 +1,6 @@
 # clnode
 
-[한국어](./README.ko.md)
+[한국어](./README.ko.md) | [사용 가이드 (한국어, 스크린샷 포함)](./docs/GUIDE.md)
 
 **Claude Code Swarm Intelligence Plugin** — your own dev team, running 24/7.
 
@@ -44,21 +44,26 @@ Leader           → stays lean, only makes high-level decisions
 ## Quick Start
 
 ```bash
-# 1. Install
-npm install -g clnode
+# 1. Clone & Build
+git clone https://github.com/SierraDevsec/clnode.git
+cd clnode && pnpm install && pnpm build
 
-# 2. Start the daemon
+# 2. (Optional) Global link
+pnpm link --global
+
+# 3. Start the daemon
 clnode start
 
-# 3. Initialize your project
-cd your-project
-clnode init
+# 4. Initialize your project
+clnode init /path/to/your/project
 
-# 4. Open Web UI
+# 5. Open Web UI
 clnode ui
 ```
 
 That's it. **Restart your Claude Code session** — hooks activate on session start. Claude Code will now automatically coordinate agents through clnode.
+
+> For detailed installation and usage instructions with screenshots, see the **[User Guide (Korean)](./docs/GUIDE.md)**.
 
 ## How It Works
 

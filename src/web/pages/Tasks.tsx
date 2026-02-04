@@ -86,7 +86,7 @@ export default function Tasks() {
   }, [events, reload]);
 
   const loadComments = useCallback((taskId: number) => {
-    api.taskComments(taskId).then(setComments);
+    api.taskComments(taskId).then(setComments).catch(() => {});
   }, []);
 
   const toggleExpand = (taskId: number) => {
@@ -103,29 +103,24 @@ export default function Tasks() {
     const idx = getColIdx(task.status);
     const newIdx = idx + direction;
     if (newIdx < 0 || newIdx >= COLUMNS.length) return;
-    await api.updateTask(task.id, { status: COLUMNS[newIdx].key });
-    reload();
+    try { await api.updateTask(task.id, { status: COLUMNS[newIdx].key }); reload(); } catch {}
   };
 
   const moveTaskToStatus = async (taskId: number, newStatus: string) => {
-    await api.updateTask(taskId, { status: newStatus });
-    reload();
+    try { await api.updateTask(taskId, { status: newStatus }); reload(); } catch {}
   };
 
   const removeTask = async (id: number) => {
-    await api.deleteTask(id);
-    if (expandedTask === id) {
-      setExpandedTask(null);
-      setComments([]);
-    }
-    reload();
+    try {
+      await api.deleteTask(id);
+      if (expandedTask === id) { setExpandedTask(null); setComments([]); }
+      reload();
+    } catch {}
   };
 
   const addComment = async (taskId: number) => {
     if (!newComment.trim()) return;
-    await api.addTaskComment(taskId, { content: newComment, comment_type: "note" });
-    setNewComment("");
-    loadComments(taskId);
+    try { await api.addTaskComment(taskId, { content: newComment, comment_type: "note" }); setNewComment(""); loadComments(taskId); } catch {}
   };
 
   const byStatus = (status: string) => tasks.filter((t) => t.status === status);
@@ -386,14 +381,16 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    await api.createTask({
-      title,
-      description: description || undefined,
-      status: "idea",
-      tags: tags.length > 0 ? tags : undefined,
-    });
-    onCreated();
-    onClose();
+    try {
+      await api.createTask({
+        title,
+        description: description || undefined,
+        status: "idea",
+        tags: tags.length > 0 ? tags : undefined,
+      });
+      onCreated();
+      onClose();
+    } catch {}
   };
 
   return (

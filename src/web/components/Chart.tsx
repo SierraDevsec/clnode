@@ -11,8 +11,8 @@ export function BarChart({ data, title }: { data: BarData[]; title?: string }) {
     <div className="space-y-3">
       {title && <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{title}</h4>}
       <div className="space-y-2">
-        {data.map((d, i) => (
-          <div key={i} className="flex items-center gap-3">
+        {data.map((d) => (
+          <div key={d.label} className="flex items-center gap-3">
             <span className="text-xs text-zinc-400 w-24 truncate shrink-0">{d.label}</span>
             <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
               <div

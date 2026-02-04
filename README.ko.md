@@ -1,5 +1,7 @@
 # clnode
 
+> **[상세 사용 가이드 (스크린샷 포함)](./docs/GUIDE.md)**
+
 **Claude Code 스웜 인텔리전스 플러그인** — 나만의 개발팀, 24시간 가동.
 
 혼자서도 5인 팀처럼 일할 수 있습니다. 백엔드, 프론트엔드, 리뷰어, 테스터 에이전트가 병렬로 돌면서 서로의 결과를 자동으로 이어받습니다.
@@ -42,21 +44,26 @@ Leader       → 고수준 결정만 내림, 컨텍스트 최소화
 ## 빠른 시작
 
 ```bash
-# 1. 설치
-npm install -g clnode
+# 1. 클론 & 빌드
+git clone https://github.com/SierraDevsec/clnode.git
+cd clnode && pnpm install && pnpm build
 
-# 2. 데몬 시작
+# 2. (선택) 전역 링크
+pnpm link --global
+
+# 3. 데몬 시작
 clnode start
 
-# 3. 프로젝트 초기화
-cd your-project
-clnode init
+# 4. 프로젝트 초기화
+clnode init /path/to/your/project
 
-# 4. Web UI 열기
+# 5. Web UI 열기
 clnode ui
 ```
 
 끝입니다. **Claude Code 세션을 재시작하세요** — hooks는 세션 시작 시점에 활성화됩니다. 이후부터 Claude Code가 clnode를 통해 에이전트를 자동으로 조율합니다.
+
+> 자세한 설치 방법과 사용법은 **[사용 가이드](./docs/GUIDE.md)** 를 참고하세요.
 
 ## 작동 원리
 

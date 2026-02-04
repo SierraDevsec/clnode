@@ -32,7 +32,7 @@ export default function Activity() {
   }, [events.length, loadActivities]);
 
   const loadFiles = (sessionId: string) => {
-    api.sessionFiles(sessionId).then(setFiles);
+    api.sessionFiles(sessionId).then(setFiles).catch(() => {});
   };
 
   const filtered = activities
