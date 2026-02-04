@@ -1,0 +1,8 @@
+node_modules/
+dist/
+data/*.duckdb
+data/*.duckdb.wal
+*.log
+.DS_Store
+.env
+.idea/
