@@ -1,34 +1,40 @@
 import { getDb } from "../db.js";
 
 export async function startAgent(
-  agentId: string,
+  id: string,
   sessionId: string,
-  parentAgentId: string | null,
+  agentName: string,
   agentType: string | null,
-  model: string | null
+  parentAgentId: string | null
 ): Promise<void> {
   const db = await getDb();
   await db.run(
-    `INSERT INTO agents (agent_id, session_id, parent_agent_id, agent_type, model)
+    `INSERT INTO agents (id, session_id, agent_name, agent_type, parent_agent_id)
      VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT (agent_id) DO UPDATE SET status = 'active', started_at = now()`,
-    agentId, sessionId, parentAgentId, agentType, model
+     ON CONFLICT (id) DO UPDATE SET status = 'active', started_at = now()`,
+    id, sessionId, agentName, agentType, parentAgentId
   );
 }
 
-export async function stopAgent(agentId: string): Promise<void> {
+export async function stopAgent(id: string, contextSummary: string | null): Promise<void> {
   const db = await getDb();
   await db.run(
-    `UPDATE agents SET status = 'stopped', ended_at = now() WHERE agent_id = ?`,
-    agentId
+    `UPDATE agents SET status = 'completed', completed_at = now(), context_summary = ?
+     WHERE id = ?`,
+    contextSummary, id
   );
+}
+
+export async function getAgent(id: string) {
+  const db = await getDb();
+  const rows = await db.all(`SELECT * FROM agents WHERE id = ?`, id);
+  return rows[0] ?? null;
 }
 
 export async function getAgentsBySession(sessionId: string) {
   const db = await getDb();
   return db.all(
-    `SELECT * FROM agents WHERE session_id = ? ORDER BY started_at DESC`,
-    sessionId
+    `SELECT * FROM agents WHERE session_id = ? ORDER BY started_at DESC`, sessionId
   );
 }
 

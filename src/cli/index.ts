@@ -97,14 +97,14 @@ program
       const sessions = await sessionsRes.json() as Array<Record<string, unknown>>;
       console.log(`[clnode] Active sessions: ${sessions.length}`);
       for (const s of sessions) {
-        console.log(`  - ${s.session_id} (${s.project_path ?? "unknown"})`);
+        console.log(`  - ${s.id} (project: ${s.project_id ?? "none"})`);
       }
 
       const agentsRes = await fetch(`${CLNODE_URL}/api/agents?active=true`);
       const agents = await agentsRes.json() as Array<Record<string, unknown>>;
       console.log(`[clnode] Active agents: ${agents.length}`);
       for (const a of agents) {
-        console.log(`  - ${a.agent_id} [${a.agent_type ?? "unknown"}]`);
+        console.log(`  - ${a.id} [${a.agent_name}] (${a.agent_type ?? "unknown"})`);
       }
     } catch {
       console.log("[clnode] Daemon is not running");
@@ -116,41 +116,50 @@ program
 // clnode init [path]
 program
   .command("init [targetPath]")
-  .description("Install hooks configuration to target project")
-  .action((targetPath?: string) => {
+  .description("Install lifecycle hooks in the target project")
+  .action(async (targetPath?: string) => {
     const target = targetPath ? path.resolve(targetPath) : process.cwd();
-    const claudeDir = path.join(target, ".claude");
-    fs.mkdirSync(claudeDir, { recursive: true });
+    const projectName = path.basename(target);
+    const projectId = projectName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-    // hooks-config.json 템플릿 복사
-    const templatePath = path.resolve(
-      import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-      "../../templates/hooks-config.json"
-    );
-
-    const settingsPath = path.join(claudeDir, "settings.json");
-
-    // 기존 settings.json 읽기 또는 새로 생성
-    let settings: Record<string, unknown> = {};
-    if (fs.existsSync(settingsPath)) {
-      settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
-    }
-
-    // hooks 설정 로드
-    const hooksConfig = JSON.parse(fs.readFileSync(templatePath, "utf-8"));
-    settings.hooks = hooksConfig.hooks;
-
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-    console.log(`[clnode] Hooks installed to ${settingsPath}`);
-
-    // hook.sh 실행 권한 확인
     const hookScript = path.resolve(
       import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
       "../hooks/hook.sh"
     );
-    if (fs.existsSync(hookScript)) {
-      fs.chmodSync(hookScript, 0o755);
-      console.log(`[clnode] hook.sh is executable: ${hookScript}`);
+    fs.chmodSync(hookScript, 0o755);
+
+    const claudeDir = path.join(target, ".claude");
+    fs.mkdirSync(claudeDir, { recursive: true });
+
+    const templatePath = path.resolve(
+      import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
+      "../../templates/hooks-config.json"
+    );
+    const templateRaw = fs.readFileSync(templatePath, "utf-8");
+    const hooksConfig = JSON.parse(templateRaw.replaceAll("HOOK_SCRIPT_PATH", hookScript));
+
+    const settingsPath = path.join(claudeDir, "settings.local.json");
+    let settings: Record<string, unknown> = {};
+    if (fs.existsSync(settingsPath)) {
+      settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
+    }
+    settings.hooks = hooksConfig.hooks;
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+    console.log(`[clnode] Hooks installed to ${settingsPath}`);
+    console.log(`[clnode] hook.sh path: ${hookScript}`);
+
+    try {
+      await fetch(`${CLNODE_URL}/api/health`);
+      const res = await fetch(`${CLNODE_URL}/hooks/RegisterProject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: projectId, project_name: projectName, project_path: target }),
+      });
+      if (res.ok) {
+        console.log(`[clnode] Project registered: ${projectId} (${target})`);
+      }
+    } catch {
+      console.log(`[clnode] Daemon not running — project will be registered on first hook event`);
     }
   });
 

@@ -20,85 +20,78 @@ export async function getDb(): Promise<Database> {
 }
 
 async function initSchema(db: Database): Promise<void> {
-  // 시퀀스 먼저 생성
   await db.exec(`
-    CREATE SEQUENCE IF NOT EXISTS tool_uses_seq START 1;
-    CREATE SEQUENCE IF NOT EXISTS activities_seq START 1;
-    CREATE SEQUENCE IF NOT EXISTS contexts_seq START 1;
-    CREATE SEQUENCE IF NOT EXISTS events_seq START 1;
+    CREATE SEQUENCE IF NOT EXISTS context_entries_seq START 1;
+    CREATE SEQUENCE IF NOT EXISTS file_changes_seq START 1;
+    CREATE SEQUENCE IF NOT EXISTS tasks_seq START 1;
+    CREATE SEQUENCE IF NOT EXISTS activity_log_seq START 1;
   `);
 
   await db.exec(`
-    -- 세션 테이블: Claude Code 세션 단위
+    CREATE TABLE IF NOT EXISTS projects (
+      id         VARCHAR PRIMARY KEY,
+      name       VARCHAR NOT NULL,
+      path       VARCHAR NOT NULL UNIQUE,
+      created_at TIMESTAMP DEFAULT now()
+    );
+
     CREATE TABLE IF NOT EXISTS sessions (
-      session_id     VARCHAR PRIMARY KEY,
-      project_path   VARCHAR,
-      started_at     TIMESTAMP DEFAULT now(),
-      ended_at       TIMESTAMP,
-      status         VARCHAR DEFAULT 'active'
+      id         VARCHAR PRIMARY KEY,
+      project_id VARCHAR,
+      started_at TIMESTAMP DEFAULT now(),
+      ended_at   TIMESTAMP,
+      status     VARCHAR DEFAULT 'active'
     );
 
-    -- 에이전트 테이블: 세션 내 서브에이전트
     CREATE TABLE IF NOT EXISTS agents (
-      agent_id       VARCHAR PRIMARY KEY,
-      session_id     VARCHAR NOT NULL,
+      id              VARCHAR PRIMARY KEY,
+      session_id      VARCHAR,
+      agent_name      VARCHAR NOT NULL,
+      agent_type      VARCHAR,
       parent_agent_id VARCHAR,
-      agent_type     VARCHAR,
-      model          VARCHAR,
-      started_at     TIMESTAMP DEFAULT now(),
-      ended_at       TIMESTAMP,
-      status         VARCHAR DEFAULT 'active'
+      status          VARCHAR DEFAULT 'active',
+      started_at      TIMESTAMP DEFAULT now(),
+      completed_at    TIMESTAMP,
+      context_summary TEXT
     );
 
-    -- 태스크 테이블: 에이전트가 수행하는 작업
+    CREATE TABLE IF NOT EXISTS context_entries (
+      id         INTEGER PRIMARY KEY DEFAULT nextval('context_entries_seq'),
+      session_id VARCHAR,
+      agent_id   VARCHAR,
+      entry_type VARCHAR NOT NULL,
+      content    TEXT NOT NULL,
+      tags       VARCHAR[],
+      created_at TIMESTAMP DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS file_changes (
+      id          INTEGER PRIMARY KEY DEFAULT nextval('file_changes_seq'),
+      session_id  VARCHAR,
+      agent_id    VARCHAR,
+      file_path   VARCHAR NOT NULL,
+      change_type VARCHAR NOT NULL,
+      created_at  TIMESTAMP DEFAULT now()
+    );
+
     CREATE TABLE IF NOT EXISTS tasks (
-      task_id        VARCHAR PRIMARY KEY,
-      agent_id       VARCHAR NOT NULL,
-      session_id     VARCHAR NOT NULL,
-      description    VARCHAR,
-      status         VARCHAR DEFAULT 'pending',
-      created_at     TIMESTAMP DEFAULT now(),
-      updated_at     TIMESTAMP DEFAULT now()
+      id          INTEGER PRIMARY KEY DEFAULT nextval('tasks_seq'),
+      project_id  VARCHAR,
+      title       VARCHAR NOT NULL,
+      description TEXT,
+      status      VARCHAR DEFAULT 'pending',
+      assigned_to VARCHAR,
+      created_at  TIMESTAMP DEFAULT now(),
+      updated_at  TIMESTAMP DEFAULT now()
     );
 
-    -- 도구 사용 기록
-    CREATE TABLE IF NOT EXISTS tool_uses (
-      id             INTEGER PRIMARY KEY DEFAULT nextval('tool_uses_seq'),
-      session_id     VARCHAR NOT NULL,
-      agent_id       VARCHAR,
-      tool_name      VARCHAR NOT NULL,
-      tool_input     VARCHAR,
-      tool_output    VARCHAR,
-      used_at        TIMESTAMP DEFAULT now()
-    );
-
-    -- 활동 로그
-    CREATE TABLE IF NOT EXISTS activities (
-      id             INTEGER PRIMARY KEY DEFAULT nextval('activities_seq'),
-      session_id     VARCHAR NOT NULL,
-      agent_id       VARCHAR,
-      event_type     VARCHAR NOT NULL,
-      summary        VARCHAR,
-      created_at     TIMESTAMP DEFAULT now()
-    );
-
-    -- 컨텍스트 저장소
-    CREATE TABLE IF NOT EXISTS contexts (
-      id             INTEGER PRIMARY KEY DEFAULT nextval('contexts_seq'),
-      session_id     VARCHAR NOT NULL,
-      agent_id       VARCHAR,
-      key            VARCHAR NOT NULL,
-      value          VARCHAR,
-      created_at     TIMESTAMP DEFAULT now()
-    );
-
-    -- 원시 이벤트 로그
-    CREATE TABLE IF NOT EXISTS events (
-      id             INTEGER PRIMARY KEY DEFAULT nextval('events_seq'),
-      session_id     VARCHAR,
-      event_type     VARCHAR NOT NULL,
-      payload        VARCHAR,
-      received_at    TIMESTAMP DEFAULT now()
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id         INTEGER PRIMARY KEY DEFAULT nextval('activity_log_seq'),
+      session_id VARCHAR,
+      agent_id   VARCHAR,
+      event_type VARCHAR NOT NULL,
+      details    JSON,
+      created_at TIMESTAMP DEFAULT now()
     );
   `);
 }

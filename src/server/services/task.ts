@@ -1,40 +1,35 @@
 import { getDb } from "../db.js";
 
 export async function createTask(
-  taskId: string,
-  agentId: string,
-  sessionId: string,
-  description: string | null
-): Promise<void> {
+  projectId: string | null,
+  title: string,
+  description: string | null,
+  assignedTo: string | null
+): Promise<number> {
   const db = await getDb();
   await db.run(
-    `INSERT INTO tasks (task_id, agent_id, session_id, description)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT (task_id) DO UPDATE SET description = excluded.description, updated_at = now()`,
-    taskId, agentId, sessionId, description
+    `INSERT INTO tasks (project_id, title, description, assigned_to) VALUES (?, ?, ?, ?)`,
+    projectId, title, description, assignedTo
   );
+  const rows = await db.all(`SELECT lastval() as id`);
+  return (rows[0] as { id: number }).id;
 }
 
-export async function updateTaskStatus(taskId: string, status: string): Promise<void> {
+export async function updateTaskStatus(id: number, status: string): Promise<void> {
   const db = await getDb();
   await db.run(
-    `UPDATE tasks SET status = ?, updated_at = now() WHERE task_id = ?`,
-    status, taskId
+    `UPDATE tasks SET status = ?, updated_at = now() WHERE id = ?`, status, id
   );
 }
 
-export async function getTasksBySession(sessionId: string) {
+export async function getTasksByProject(projectId: string) {
   const db = await getDb();
   return db.all(
-    `SELECT * FROM tasks WHERE session_id = ? ORDER BY created_at DESC`,
-    sessionId
+    `SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC`, projectId
   );
 }
 
-export async function getTasksByAgent(agentId: string) {
+export async function getAllTasks() {
   const db = await getDb();
-  return db.all(
-    `SELECT * FROM tasks WHERE agent_id = ? ORDER BY created_at DESC`,
-    agentId
-  );
+  return db.all(`SELECT * FROM tasks ORDER BY created_at DESC`);
 }

@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { startSession, endSession } from "../services/session.js";
-import { startAgent, stopAgent } from "../services/agent.js";
-import { recordToolUse } from "../services/tooluse.js";
+import { startAgent, stopAgent, getAgent } from "../services/agent.js";
+import { addContextEntry, getRecentContext } from "../services/context.js";
+import { recordFileChange } from "../services/filechange.js";
 import { logActivity } from "../services/activity.js";
-import { saveEvent } from "../services/event.js";
+import { findProjectByPath, registerProject } from "../services/project.js";
 import { broadcast } from "./ws.js";
 
 const hooks = new Hono();
@@ -11,92 +12,117 @@ const hooks = new Hono();
 hooks.post("/:event", async (c) => {
   const event = c.req.param("event");
   const body = await c.req.json().catch(() => ({}));
-
-  // 원시 이벤트 항상 저장
-  const sessionId = body.session_id ?? body.sessionId ?? null;
-  await saveEvent(sessionId, event, body);
+  const sessionId = body.session_id ?? "unknown";
 
   try {
     switch (event) {
       case "SessionStart": {
-        const sid = body.session_id ?? body.sessionId ?? crypto.randomUUID();
-        const projectPath = body.project_path ?? body.cwd ?? null;
-        await startSession(sid, projectPath);
-        await logActivity(sid, null, "SessionStart", `Session started: ${sid}`);
-        broadcast("SessionStart", { session_id: sid, project_path: projectPath });
-        return c.json({ ok: true, session_id: sid });
+        const cwd = body.cwd ?? body.project_path ?? null;
+        let projectId: string | null = null;
+        if (cwd) {
+          const project = await findProjectByPath(cwd);
+          if (project) projectId = (project as { id: string }).id;
+        }
+        await startSession(sessionId, projectId);
+        await logActivity(sessionId, null, "SessionStart", { cwd, project_id: projectId });
+        broadcast("SessionStart", { session_id: sessionId, project_id: projectId });
+        return c.json({});
       }
 
       case "SessionEnd": {
-        const sid = body.session_id ?? body.sessionId;
-        if (sid) {
-          await endSession(sid);
-          await logActivity(sid, null, "SessionEnd", `Session ended: ${sid}`);
-          broadcast("SessionEnd", { session_id: sid });
-        }
-        return c.json({ ok: true });
+        await endSession(sessionId);
+        await logActivity(sessionId, null, "SessionEnd", {});
+        broadcast("SessionEnd", { session_id: sessionId });
+        return c.json({});
       }
 
       case "SubagentStart": {
-        const sid = body.session_id ?? body.sessionId ?? "unknown";
-        const agentId = body.agent_id ?? body.agentId ?? crypto.randomUUID();
-        const parentId = body.parent_agent_id ?? body.parentAgentId ?? null;
-        const agentType = body.agent_type ?? body.type ?? null;
-        const model = body.model ?? null;
-        await startAgent(agentId, sid, parentId, agentType, model);
-        await logActivity(sid, agentId, "SubagentStart", `Agent started: ${agentType ?? agentId}`);
-        broadcast("SubagentStart", { session_id: sid, agent_id: agentId, agent_type: agentType });
-        return c.json({ ok: true, agent_id: agentId });
+        const agentId = body.agent_id ?? crypto.randomUUID();
+        const toolInput = body.tool_input ?? {};
+        const agentName = toolInput.subagent_type ?? toolInput.name ?? "unknown";
+        const agentType = toolInput.subagent_type ?? null;
+        const parentAgentId = body.parent_agent_id ?? null;
+
+        await startAgent(agentId, sessionId, agentName, agentType, parentAgentId);
+        await logActivity(sessionId, agentId, "SubagentStart", { agent_name: agentName, agent_type: agentType });
+        broadcast("SubagentStart", { session_id: sessionId, agent_id: agentId, agent_name: agentName });
+
+        const contextEntries = await getRecentContext(sessionId, 10);
+        let additionalContext = "";
+        if (contextEntries.length > 0) {
+          const summaries = contextEntries.map((e: Record<string, unknown>) => e.content);
+          additionalContext = `[clnode context]\n${summaries.join("\n")}`;
+        }
+
+        return c.json({
+          hookSpecificOutput: {
+            hookEventName: "SubagentStart",
+            ...(additionalContext ? { additionalContext } : {}),
+          },
+        });
       }
 
       case "SubagentStop": {
-        const sid = body.session_id ?? body.sessionId ?? "unknown";
-        const agentId = body.agent_id ?? body.agentId;
+        const agentId = body.agent_id ?? null;
+        const contextSummary = body.context_summary ?? body.result ?? null;
         if (agentId) {
-          await stopAgent(agentId);
-          await logActivity(sid, agentId, "SubagentStop", `Agent stopped: ${agentId}`);
-          broadcast("SubagentStop", { session_id: sid, agent_id: agentId });
+          await stopAgent(agentId, contextSummary);
+          if (contextSummary) {
+            await addContextEntry(sessionId, agentId, "agent_summary", contextSummary, ["auto"]);
+          }
+          await logActivity(sessionId, agentId, "SubagentStop", { context_summary: contextSummary });
+          broadcast("SubagentStop", { session_id: sessionId, agent_id: agentId });
         }
-        return c.json({ ok: true });
+        return c.json({});
       }
 
       case "PostToolUse": {
-        const sid = body.session_id ?? body.sessionId ?? "unknown";
-        const agentId = body.agent_id ?? body.agentId ?? null;
-        const toolName = body.tool_name ?? body.tool ?? "unknown";
-        const toolInput = body.tool_input ? JSON.stringify(body.tool_input) : null;
-        const toolOutput = body.tool_output ? JSON.stringify(body.tool_output) : null;
-        await recordToolUse(sid, agentId, toolName, toolInput, toolOutput);
-        await logActivity(sid, agentId, "PostToolUse", `Tool used: ${toolName}`);
-        broadcast("PostToolUse", { session_id: sid, tool_name: toolName });
-        return c.json({ ok: true });
+        const agentId = body.agent_id ?? null;
+        const toolName = body.tool_name ?? body.tool ?? "";
+        const toolInput = body.tool_input ?? {};
+
+        if (toolName === "Edit" || toolName === "Write") {
+          const filePath = toolInput.file_path ?? toolInput.path ?? "unknown";
+          const changeType = toolName === "Write" ? "create" : "edit";
+          await recordFileChange(sessionId, agentId, filePath, changeType);
+        }
+
+        await logActivity(sessionId, agentId, "PostToolUse", { tool_name: toolName });
+        broadcast("PostToolUse", { session_id: sessionId, tool_name: toolName });
+        return c.json({});
       }
 
       case "Stop": {
-        const sid = body.session_id ?? body.sessionId ?? "unknown";
-        await logActivity(sid, null, "Stop", body.reason ?? "Stop signal received");
-        broadcast("Stop", { session_id: sid, reason: body.reason });
-        return c.json({ ok: true });
+        await logActivity(sessionId, null, "Stop", { reason: body.reason });
+        broadcast("Stop", { session_id: sessionId });
+        return c.json({});
       }
 
       case "UserPromptSubmit": {
-        const sid = body.session_id ?? body.sessionId ?? "unknown";
         const prompt = body.prompt ?? body.message ?? "";
-        await logActivity(sid, null, "UserPromptSubmit", `User prompt: ${prompt.slice(0, 200)}`);
-        broadcast("UserPromptSubmit", { session_id: sid, prompt });
-        return c.json({ ok: true });
+        await logActivity(sessionId, null, "UserPromptSubmit", { prompt: prompt.slice(0, 500) });
+        broadcast("UserPromptSubmit", { session_id: sessionId });
+        return c.json({});
+      }
+
+      case "RegisterProject": {
+        const pid = body.project_id ?? crypto.randomUUID();
+        const pname = body.project_name ?? "unknown";
+        const ppath = body.project_path ?? "";
+        await registerProject(pid, pname, ppath);
+        return c.json({ ok: true, project_id: pid });
       }
 
       default: {
-        await logActivity(sessionId ?? "unknown", null, event, `Unknown event: ${event}`);
+        await logActivity(sessionId, null, event, body);
         broadcast(event, body);
-        return c.json({ ok: true, event, message: "unhandled event type, stored as raw" });
+        return c.json({});
       }
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[hooks/${event}] Error:`, msg);
-    return c.json({ ok: false, error: msg }, 500);
+    return c.json({});
   }
 });
 

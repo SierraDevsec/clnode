@@ -3,43 +3,43 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh SessionStart"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "SessionEnd": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh SessionEnd"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "SubagentStart": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh SubagentStart"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "SubagentStop": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh SubagentStop"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "PostToolUse": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh PostToolUse"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "Stop": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh Stop"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ],
     "UserPromptSubmit": [
       {
         "type": "command",
-        "command": "HOOK_SCRIPT_PATH/hook.sh UserPromptSubmit"
+        "command": "HOOK_SCRIPT_PATH"
       }
     ]
   }

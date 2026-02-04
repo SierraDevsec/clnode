@@ -1,22 +1,17 @@
-#!/usr/bin/env bash
-# clnode hook script — Claude Code hooks에서 호출됨
-# 사용법: hook.sh <event_name> [stdin: JSON payload]
+#!/bin/bash
+# clnode hook script — Claude Code stdin→stdout protocol
+# Claude Code → stdin(JSON) → hook.sh → curl POST daemon → stdout(JSON) → Claude Code
 
-set -euo pipefail
-
-CLNODE_URL="${CLNODE_URL:-http://localhost:3100}"
-EVENT="${1:-unknown}"
-
-# stdin에서 JSON payload 읽기 (없으면 빈 객체)
-PAYLOAD=$(cat 2>/dev/null || echo '{}')
-if [ -z "$PAYLOAD" ]; then
-  PAYLOAD='{}'
-fi
-
-# clnode 서버로 전송 (실패해도 Claude Code 블로킹 안 함)
-curl -s -X POST \
-  "${CLNODE_URL}/hooks/${EVENT}" \
+INPUT=$(cat)
+EVENT=$(echo "$INPUT" | jq -r '.hook_event_name // "unknown"')
+RESPONSE=$(echo "$INPUT" | curl -sf -X POST \
   -H "Content-Type: application/json" \
-  -d "${PAYLOAD}" \
-  --max-time 2 \
-  > /dev/null 2>&1 || true
+  -d @- \
+  "http://localhost:3100/hooks/${EVENT}" 2>/dev/null)
+
+if [ $? -eq 0 ] && [ -n "$RESPONSE" ]; then
+  echo "$RESPONSE"
+  exit 0
+else
+  exit 0
+fi
