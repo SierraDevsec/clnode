@@ -1,116 +1,154 @@
 import { useEffect, useState } from "react";
-import { api, type Session, type Agent, type Activity, type Stats, formatTime } from "../lib/api";
+import { api, type Session, type Agent, type Activity, type Task, type Stats, formatTime } from "../lib/api";
 import { useWebSocket } from "../lib/useWebSocket";
+import { Card } from "../components/Card";
+import { Badge, type Variant } from "../components/Badge";
+import { BarChart } from "../components/Chart";
+import { RiTerminalBoxLine, RiRobot2Line, RiDatabase2Line, RiFileEditLine, RiPulseLine, RiTaskLine } from "react-icons/ri";
 
 export default function Dashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [allAgents, setAllAgents] = useState<Agent[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [subagentOnly, setSubagentOnly] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const { connected, events, reconnectCount } = useWebSocket();
 
   const loadData = () => {
     Promise.all([
       api.sessions(true),
       api.agents(true),
-      api.activities(20),
+      api.agents(),
+      api.activities(50),
       api.stats(),
-    ]).then(([s, a, act, st]) => {
+      api.tasks(),
+    ]).then(([s, a, allA, act, st, t]) => {
       setSessions(s);
       setAgents(a);
+      setAllAgents(allA);
       setActivities(act);
       setStats(st);
+      setTasks(t);
     });
   };
 
   useEffect(() => { loadData(); }, [reconnectCount]);
   useEffect(() => { if (events.length > 0) loadData(); }, [events.length]);
 
+  const agentTypeCounts = allAgents.reduce<Record<string, number>>((acc, a) => {
+    const type = a.agent_type || a.agent_name || "unknown";
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const agentTypeData = Object.entries(agentTypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([label, value]) => ({ label, value, color: "bg-emerald-500" }));
+
+  const activityTypeCounts = activities.reduce<Record<string, number>>((acc, a) => {
+    acc[a.event_type] = (acc[a.event_type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const EVENT_COLORS: Record<string, string> = {
+    SessionStart: "bg-green-500",
+    SessionEnd: "bg-red-500",
+    SubagentStart: "bg-blue-500",
+    SubagentStop: "bg-purple-500",
+    PostToolUse: "bg-amber-500",
+    UserPromptSubmit: "bg-cyan-500",
+    Stop: "bg-orange-500",
+  };
+
+  const activityTypeData = Object.entries(activityTypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, value]) => ({ label, value, color: EVENT_COLORS[label] || "bg-zinc-500" }));
+
+  const statCards = [
+    { label: "Active Sessions", value: sessions.length, sub: stats ? `/ ${stats.total_sessions} total` : undefined, icon: RiTerminalBoxLine },
+    { label: "Active Agents", value: agents.length, sub: stats ? `/ ${stats.total_agents} total` : undefined, icon: RiRobot2Line },
+    { label: "Context Entries", value: stats?.total_context_entries ?? 0, icon: RiDatabase2Line },
+    { label: "File Changes", value: stats?.total_file_changes ?? 0, icon: RiFileEditLine },
+    { label: "Live Events", value: events.length, icon: RiPulseLine },
+    { label: "Tasks", value: tasks.length, icon: RiTaskLine, sub: "all projects" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <span className={`text-xs px-2 py-0.5 rounded ${connected ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}`}>
-          {connected ? "LIVE" : "DISCONNECTED"}
-        </span>
+        <h2 className="text-2xl font-bold text-zinc-50">Dashboard</h2>
+        <Badge variant={connected ? "success" : "danger"} dot>{connected ? "LIVE" : "DISCONNECTED"}</Badge>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Active Sessions" value={sessions.length} sub={stats ? `/ ${stats.total_sessions} total` : undefined} />
-        <StatCard label="Active Agents" value={agents.length} sub={stats ? `/ ${stats.total_agents} total` : undefined} />
-        <StatCard label="Context Entries" value={stats?.total_context_entries ?? 0} />
+        {statCards.map((s) => (
+          <Card key={s.label}>
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-zinc-50">{s.value}</span>
+                  {s.sub && <span className="text-xs text-zinc-600">{s.sub}</span>}
+                </div>
+                <div className="text-sm text-zinc-400 mt-1">{s.label}</div>
+              </div>
+              <s.icon className="w-5 h-5 text-zinc-600" />
+            </div>
+          </Card>
+        ))}
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="File Changes" value={stats?.total_file_changes ?? 0} />
-        <StatCard label="Live Events" value={events.length} />
+
+      <div className="grid grid-cols-2 gap-6">
+        <Card>
+          <BarChart data={agentTypeData} title="Agent Types" />
+        </Card>
+        <Card>
+          <BarChart data={activityTypeData} title="Recent Activity Breakdown" />
+        </Card>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Active Sessions</h3>
+          <h3 className="text-xs font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Active Sessions</h3>
           <div className="space-y-2">
-            {sessions.length === 0 && <p className="text-gray-600 text-sm">No active sessions</p>}
+            {sessions.length === 0 && <p className="text-zinc-600 text-sm">No active sessions</p>}
             {sessions.map((s) => (
-              <div key={s.id} className="bg-gray-900 border border-gray-800 rounded p-3">
-                <div className="text-sm font-mono text-white">{s.id}</div>
-                <div className="text-xs text-gray-500 mt-1">project: {s.project_id ?? "—"}</div>
-              </div>
+              <Card key={s.id} hover>
+                <div className="text-sm font-mono text-zinc-200">{s.id}</div>
+                <div className="text-xs text-zinc-500 mt-1">project: {s.project_id ?? "—"}</div>
+              </Card>
             ))}
           </div>
         </div>
 
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Recent Activity</h3>
-            <button
-              onClick={() => setSubagentOnly(!subagentOnly)}
-              className={`px-2 py-0.5 rounded text-[10px] ${subagentOnly ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"}`}
-            >
-              Subagent Only
-            </button>
-          </div>
+          <h3 className="text-xs font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Recent Activity</h3>
           <div className="space-y-1">
-            {activities.length === 0 && <p className="text-gray-600 text-sm">No activity yet</p>}
-            {activities.filter((a) => !subagentOnly || a.agent_id != null).slice(0, 15).map((a) => (
+            {activities.length === 0 && <p className="text-zinc-600 text-sm">No activity yet</p>}
+            {activities.slice(0, 15).map((a) => (
               <div key={a.id} className="flex items-center gap-2 text-xs py-1">
                 <EventBadge type={a.event_type} />
-                <span className="text-gray-400 font-mono">{a.agent_id?.slice(0, 8) ?? "system"}</span>
-                <span className="text-gray-600">{formatTime(a.created_at)}</span>
+                <span className="text-zinc-400 font-mono">{a.agent_id?.slice(0, 8) ?? "system"}</span>
+                <span className="text-zinc-600">{formatTime(a.created_at)}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <div className="flex items-baseline gap-2">
-        <div className="text-3xl font-bold text-white">{value}</div>
-        {sub && <div className="text-xs text-gray-600">{sub}</div>}
-      </div>
-      <div className="text-sm text-gray-400 mt-1">{label}</div>
     </div>
   );
 }
 
 function EventBadge({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    SessionStart: "bg-green-900 text-green-300",
-    SessionEnd: "bg-red-900 text-red-300",
-    SubagentStart: "bg-blue-900 text-blue-300",
-    SubagentStop: "bg-purple-900 text-purple-300",
-    PostToolUse: "bg-yellow-900 text-yellow-300",
-    UserPromptSubmit: "bg-cyan-900 text-cyan-300",
-    Stop: "bg-orange-900 text-orange-300",
+  const variants: Record<string, Variant> = {
+    SessionStart: "success",
+    SessionEnd: "danger",
+    SubagentStart: "info",
+    SubagentStop: "purple",
+    PostToolUse: "warning",
+    UserPromptSubmit: "cyan",
+    Stop: "orange",
   };
-  return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors[type] ?? "bg-gray-800 text-gray-400"}`}>
-      {type}
-    </span>
-  );
+  return <Badge variant={variants[type] ?? "neutral"}>{type}</Badge>;
 }

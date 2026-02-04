@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type ContextEntry, type Session, formatDateTime } from "../lib/api";
+import { Card } from "../components/Card";
+import { Badge } from "../components/Badge";
 
 export default function Context() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -31,13 +33,13 @@ export default function Context() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Context Store</h2>
+      <h2 className="text-2xl font-bold text-zinc-50">Context Store</h2>
 
       <div className="flex gap-3">
         <select
           value={selectedSession}
           onChange={(e) => setSelectedSession(e.target.value)}
-          className="cl-select bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-sm text-white"
+          className="cl-select bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200"
         >
           {sessions.length === 0 && <option value="">No sessions</option>}
           {sessions.map((s) => (
@@ -49,38 +51,32 @@ export default function Context() {
           placeholder="Search content, type, or tag..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-sm text-white flex-1"
+          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-500 flex-1 focus:outline-none focus:border-zinc-600"
         />
       </div>
 
       <div className="space-y-2">
         {filtered.length === 0 && (
-          <p className="text-gray-600 text-sm">
+          <p className="text-zinc-600 text-sm">
             {sessions.length === 0
               ? "No sessions yet. Start a Claude Code session with hooks enabled."
               : "No context entries"}
           </p>
         )}
         {filtered.map((entry) => (
-          <div key={entry.id} className="bg-gray-900 border border-gray-800 rounded p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-900 text-purple-300">
-                {entry.entry_type}
-              </span>
+          <Card key={entry.id}>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="purple">{entry.entry_type}</Badge>
               {entry.agent_id && (
-                <span className="text-xs text-gray-500 font-mono">{entry.agent_id.slice(0, 12)}</span>
+                <span className="text-xs text-zinc-500 font-mono">{entry.agent_id.slice(0, 12)}</span>
               )}
               {(entry.tags ?? []).map((tag) => (
-                <span key={tag} className="px-1.5 py-0.5 rounded text-[10px] bg-gray-800 text-gray-400">
-                  {tag}
-                </span>
+                <Badge key={tag} variant="neutral">{tag}</Badge>
               ))}
-              <span className="text-xs text-gray-600 ml-auto">
-                {formatDateTime(entry.created_at)}
-              </span>
+              <span className="text-xs text-zinc-600 ml-auto">{formatDateTime(entry.created_at)}</span>
             </div>
-            <div className="text-sm text-gray-200 whitespace-pre-wrap">{entry.content}</div>
-          </div>
+            <div className="text-sm text-zinc-200 whitespace-pre-wrap">{entry.content}</div>
+          </Card>
         ))}
       </div>
     </div>

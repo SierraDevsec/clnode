@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { getAllSessions, getActiveSessions, getSession, getTotalSessionsCount, getActiveSessionsCount } from "../services/session.js";
-import { getAllAgents, getActiveAgents, getAgentsBySession, getTotalAgentsCount, getActiveAgentsCount, deleteAgent } from "../services/agent.js";
-import { getContextBySession, getTotalContextEntriesCount, deleteContextByType } from "../services/context.js";
-import { getFileChangesBySession, getTotalFileChangesCount } from "../services/filechange.js";
+import { getAllAgents, getActiveAgents, getAgentsBySession, getAgent, getTotalAgentsCount, getActiveAgentsCount, deleteAgent } from "../services/agent.js";
+import { getContextBySession, getContextByAgent, getTotalContextEntriesCount, deleteContextByType } from "../services/context.js";
+import { getFileChangesBySession, getFileChangesByAgent, getTotalFileChangesCount } from "../services/filechange.js";
 import { getAllTasks, getTasksByProject, getTask, createTask, updateTask, deleteTask } from "../services/task.js";
 import { addComment, getCommentsByTask } from "../services/comment.js";
 import { getRecentActivities, getActivitiesBySession } from "../services/activity.js";
@@ -39,6 +39,20 @@ api.get("/sessions/:id/activities", async (c) => c.json(await getActivitiesBySes
 api.get("/agents", async (c) => {
   const active = c.req.query("active");
   return c.json(active === "true" ? await getActiveAgents() : await getAllAgents());
+});
+
+api.get("/agents/:id", async (c) => {
+  const agent = await getAgent(c.req.param("id"));
+  if (!agent) return c.json({ error: "not found" }, 404);
+  return c.json(agent);
+});
+
+api.get("/agents/:id/context", async (c) => {
+  return c.json(await getContextByAgent(c.req.param("id")));
+});
+
+api.get("/agents/:id/files", async (c) => {
+  return c.json(await getFileChangesByAgent(c.req.param("id")));
 });
 
 api.delete("/agents/:id", async (c) => {

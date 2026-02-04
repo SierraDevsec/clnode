@@ -142,6 +142,9 @@ export const api = {
   sessionFiles: (id: string) => get<FileChange[]>(`/sessions/${id}/files`),
   sessionActivities: (id: string) => get<Activity[]>(`/sessions/${id}/activities`),
   agents: (active?: boolean) => get<Agent[]>(`/agents${active ? "?active=true" : ""}`),
+  agentContext: (id: string) => get<ContextEntry[]>(`/agents/${id}/context`),
+  agentFiles: (id: string) => get<FileChange[]>(`/agents/${id}/files`),
+  agent: (id: string) => get<Agent>(`/agents/${id}`),
   tasks: (projectId?: string) => get<Task[]>(`/tasks${projectId ? `?project_id=${projectId}` : ""}`),
   task: (id: number) => get<Task>(`/tasks/${id}`),
   createTask: (data: { project_id?: string; title: string; description?: string; assigned_to?: string; status?: string; tags?: string[] }) =>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type Activity as ActivityType, type FileChange, formatTime } from "../lib/api";
 import { useWebSocket } from "../lib/useWebSocket";
+import { Badge, type Variant } from "../components/Badge";
 
 const EVENT_TYPES = [
   "SessionStart", "SessionEnd", "SubagentStart", "SubagentStop",
@@ -36,22 +37,20 @@ export default function Activity() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h2 className="text-2xl font-bold">Activity</h2>
-        <span className={`text-xs px-2 py-0.5 rounded ${connected ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}`}>
-          {connected ? "LIVE" : "OFFLINE"}
-        </span>
+        <h2 className="text-2xl font-bold text-zinc-50">Activity</h2>
+        <Badge variant={connected ? "success" : "danger"} dot>{connected ? "LIVE" : "OFFLINE"}</Badge>
       </div>
 
       <div className="flex gap-2">
         <button
           onClick={() => setTab("log")}
-          className={`px-3 py-1 rounded text-xs ${tab === "log" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400"}`}
+          className={`px-3 py-1 rounded-lg text-xs transition-colors ${tab === "log" ? "bg-emerald-900/60 text-emerald-300" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
         >
           Event Log
         </button>
         <button
           onClick={() => setTab("files")}
-          className={`px-3 py-1 rounded text-xs ${tab === "files" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400"}`}
+          className={`px-3 py-1 rounded-lg text-xs transition-colors ${tab === "files" ? "bg-emerald-900/60 text-emerald-300" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
         >
           File Changes
         </button>
@@ -59,14 +58,14 @@ export default function Activity() {
           <>
             <button
               onClick={() => setSubagentOnly(!subagentOnly)}
-              className={`px-3 py-1 rounded text-xs ml-auto ${subagentOnly ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"}`}
+              className={`px-3 py-1 rounded-lg text-xs ml-auto transition-colors ${subagentOnly ? "bg-purple-900/60 text-purple-300" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
             >
               Subagent Only
             </button>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="cl-select bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-white"
+              className="cl-select bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-zinc-300"
             >
               <option value="">All events</option>
               {EVENT_TYPES.map((t) => (
@@ -79,20 +78,16 @@ export default function Activity() {
 
       {tab === "log" && (
         <div className="space-y-1">
-          {filtered.length === 0 && <p className="text-gray-600 text-sm">No activity</p>}
+          {filtered.length === 0 && <p className="text-zinc-600 text-sm">No activity</p>}
           {filtered.map((a) => {
             let details: Record<string, unknown> = {};
-            try { details = JSON.parse(a.details); } catch (_) { /* ignore */ }
+            try { details = JSON.parse(a.details); } catch (_) {}
             return (
-              <div key={a.id} className="flex items-start gap-2 text-xs py-1.5 border-b border-gray-900">
-                <span className="text-gray-600 w-20 shrink-0">
-                  {formatTime(a.created_at)}
-                </span>
+              <div key={a.id} className="flex items-start gap-2 text-xs py-1.5 border-b border-zinc-800/50">
+                <span className="text-zinc-600 w-20 shrink-0">{formatTime(a.created_at)}</span>
                 <EventBadge type={a.event_type} />
-                <span className="text-gray-400 font-mono w-20 shrink-0">
-                  {a.agent_id?.slice(0, 10) ?? "—"}
-                </span>
-                <span className="text-gray-500 truncate">
+                <span className="text-zinc-400 font-mono w-20 shrink-0">{a.agent_id?.slice(0, 10) ?? "—"}</span>
+                <span className="text-zinc-500 truncate">
                   {Object.entries(details).map(([k, v]) => `${k}=${String(v)}`).join(" ")}
                 </span>
               </div>
@@ -108,25 +103,19 @@ export default function Activity() {
               onClick={() => {
                 if (activities.length > 0) loadFiles(activities[0].session_id);
               }}
-              className="px-3 py-1 rounded text-xs bg-gray-800 text-gray-400 hover:bg-gray-700"
+              className="px-3 py-1 rounded-lg text-xs bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors"
             >
               Load latest session files
             </button>
           </div>
           <div className="space-y-1">
-            {files.length === 0 && <p className="text-gray-600 text-sm">No file changes loaded</p>}
+            {files.length === 0 && <p className="text-zinc-600 text-sm">No file changes loaded</p>}
             {files.map((f) => (
-              <div key={f.id} className="flex items-center gap-2 text-xs py-1.5 border-b border-gray-900">
-                <span className="text-gray-600 w-20 shrink-0">
-                  {formatTime(f.created_at)}
-                </span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  f.change_type === "create" ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"
-                }`}>
-                  {f.change_type}
-                </span>
-                <span className="text-gray-300 font-mono">{f.file_path}</span>
-                <span className="text-gray-500 font-mono">{f.agent_id?.slice(0, 10) ?? "—"}</span>
+              <div key={f.id} className="flex items-center gap-2 text-xs py-1.5 border-b border-zinc-800/50">
+                <span className="text-zinc-600 w-20 shrink-0">{formatTime(f.created_at)}</span>
+                <Badge variant={f.change_type === "create" ? "success" : "warning"}>{f.change_type}</Badge>
+                <span className="text-zinc-300 font-mono">{f.file_path}</span>
+                <span className="text-zinc-500 font-mono">{f.agent_id?.slice(0, 10) ?? "—"}</span>
               </div>
             ))}
           </div>
@@ -137,18 +126,18 @@ export default function Activity() {
 }
 
 function EventBadge({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    SessionStart: "bg-green-900 text-green-300",
-    SessionEnd: "bg-red-900 text-red-300",
-    SubagentStart: "bg-blue-900 text-blue-300",
-    SubagentStop: "bg-purple-900 text-purple-300",
-    PostToolUse: "bg-yellow-900 text-yellow-300",
-    UserPromptSubmit: "bg-cyan-900 text-cyan-300",
-    Stop: "bg-orange-900 text-orange-300",
+  const variants: Record<string, Variant> = {
+    SessionStart: "success",
+    SessionEnd: "danger",
+    SubagentStart: "info",
+    SubagentStop: "purple",
+    PostToolUse: "warning",
+    UserPromptSubmit: "cyan",
+    Stop: "orange",
   };
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium w-28 text-center shrink-0 ${colors[type] ?? "bg-gray-800 text-gray-400"}`}>
-      {type}
+    <span className="w-28 shrink-0 text-center">
+      <Badge variant={variants[type] ?? "neutral"}>{type}</Badge>
     </span>
   );
 }
