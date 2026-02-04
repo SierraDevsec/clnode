@@ -211,6 +211,24 @@ clnode ui
 
 5단계 칸반 보드: **Idea → Planned → Pending → In Progress → Completed**. 카드를 드래그앤드롭으로 이동하거나 화살표 버튼을 사용합니다. 색상 태그와 댓글을 추가할 수 있습니다.
 
+**태스크 등록**: Claude Code에서 자연어로 등록하거나, Web UI에서 **+ Add** 버튼으로 직접 등록합니다.
+
+```
+사용자: "인증 기능 추가를 태스크로 등록해줘"
+→ Claude가 clnode API를 호출해서 태스크 카드 생성
+```
+
+**태스크 실행**: 등록된 태스크를 Claude Code에게 실행하라고 지시합니다.
+
+```
+사용자: "칸반 보드에 있는 '인증 기능 추가' 태스크 진행해줘"
+→ Claude가 에이전트를 생성해서 작업 시작
+→ 에이전트 시작 시 해당 태스크가 자동으로 할당되어 additionalContext에 포함
+→ 작업 완료 시 태스크 상태가 자동으로 Completed로 변경
+```
+
+Web UI 칸반 보드에서 카드를 드래그하거나 화살표 버튼으로 상태를 수동으로 변경할 수도 있습니다.
+
 ![Tasks](screenshots/04-tasks.png)
 
 ### Activity
