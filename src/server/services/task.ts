@@ -10,7 +10,7 @@ export async function createTask(
   await db.run(
     `INSERT INTO tasks (task_id, agent_id, session_id, description)
      VALUES (?, ?, ?, ?)
-     ON CONFLICT (task_id) DO UPDATE SET description = excluded.description, updated_at = current_timestamp`,
+     ON CONFLICT (task_id) DO UPDATE SET description = excluded.description, updated_at = now()`,
     taskId, agentId, sessionId, description
   );
 }
@@ -18,7 +18,7 @@ export async function createTask(
 export async function updateTaskStatus(taskId: string, status: string): Promise<void> {
   const db = await getDb();
   await db.run(
-    `UPDATE tasks SET status = ?, updated_at = current_timestamp WHERE task_id = ?`,
+    `UPDATE tasks SET status = ?, updated_at = now() WHERE task_id = ?`,
     status, taskId
   );
 }

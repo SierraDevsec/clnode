@@ -33,7 +33,7 @@ async function initSchema(db: Database): Promise<void> {
     CREATE TABLE IF NOT EXISTS sessions (
       session_id     VARCHAR PRIMARY KEY,
       project_path   VARCHAR,
-      started_at     TIMESTAMP DEFAULT current_timestamp,
+      started_at     TIMESTAMP DEFAULT now(),
       ended_at       TIMESTAMP,
       status         VARCHAR DEFAULT 'active'
     );
@@ -45,7 +45,7 @@ async function initSchema(db: Database): Promise<void> {
       parent_agent_id VARCHAR,
       agent_type     VARCHAR,
       model          VARCHAR,
-      started_at     TIMESTAMP DEFAULT current_timestamp,
+      started_at     TIMESTAMP DEFAULT now(),
       ended_at       TIMESTAMP,
       status         VARCHAR DEFAULT 'active'
     );
@@ -57,8 +57,8 @@ async function initSchema(db: Database): Promise<void> {
       session_id     VARCHAR NOT NULL,
       description    VARCHAR,
       status         VARCHAR DEFAULT 'pending',
-      created_at     TIMESTAMP DEFAULT current_timestamp,
-      updated_at     TIMESTAMP DEFAULT current_timestamp
+      created_at     TIMESTAMP DEFAULT now(),
+      updated_at     TIMESTAMP DEFAULT now()
     );
 
     -- 도구 사용 기록
@@ -69,7 +69,7 @@ async function initSchema(db: Database): Promise<void> {
       tool_name      VARCHAR NOT NULL,
       tool_input     VARCHAR,
       tool_output    VARCHAR,
-      used_at        TIMESTAMP DEFAULT current_timestamp
+      used_at        TIMESTAMP DEFAULT now()
     );
 
     -- 활동 로그
@@ -79,7 +79,7 @@ async function initSchema(db: Database): Promise<void> {
       agent_id       VARCHAR,
       event_type     VARCHAR NOT NULL,
       summary        VARCHAR,
-      created_at     TIMESTAMP DEFAULT current_timestamp
+      created_at     TIMESTAMP DEFAULT now()
     );
 
     -- 컨텍스트 저장소
@@ -89,7 +89,7 @@ async function initSchema(db: Database): Promise<void> {
       agent_id       VARCHAR,
       key            VARCHAR NOT NULL,
       value          VARCHAR,
-      created_at     TIMESTAMP DEFAULT current_timestamp
+      created_at     TIMESTAMP DEFAULT now()
     );
 
     -- 원시 이벤트 로그
@@ -98,7 +98,7 @@ async function initSchema(db: Database): Promise<void> {
       session_id     VARCHAR,
       event_type     VARCHAR NOT NULL,
       payload        VARCHAR,
-      received_at    TIMESTAMP DEFAULT current_timestamp
+      received_at    TIMESTAMP DEFAULT now()
     );
   `);
 }

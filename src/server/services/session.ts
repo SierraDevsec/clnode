@@ -5,7 +5,7 @@ export async function startSession(sessionId: string, projectPath: string | null
   await db.run(
     `INSERT INTO sessions (session_id, project_path)
      VALUES (?, ?)
-     ON CONFLICT (session_id) DO UPDATE SET status = 'active', started_at = current_timestamp`,
+     ON CONFLICT (session_id) DO UPDATE SET status = 'active', started_at = now()`,
     sessionId, projectPath
   );
 }
@@ -13,12 +13,12 @@ export async function startSession(sessionId: string, projectPath: string | null
 export async function endSession(sessionId: string): Promise<void> {
   const db = await getDb();
   await db.run(
-    `UPDATE sessions SET status = 'ended', ended_at = current_timestamp WHERE session_id = ?`,
+    `UPDATE sessions SET status = 'ended', ended_at = now() WHERE session_id = ?`,
     sessionId
   );
   // 세션 종료 시 관련 에이전트도 모두 종료
   await db.run(
-    `UPDATE agents SET status = 'stopped', ended_at = current_timestamp
+    `UPDATE agents SET status = 'stopped', ended_at = now()
      WHERE session_id = ? AND status = 'active'`,
     sessionId
   );

@@ -11,7 +11,7 @@ export async function startAgent(
   await db.run(
     `INSERT INTO agents (agent_id, session_id, parent_agent_id, agent_type, model)
      VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT (agent_id) DO UPDATE SET status = 'active', started_at = current_timestamp`,
+     ON CONFLICT (agent_id) DO UPDATE SET status = 'active', started_at = now()`,
     agentId, sessionId, parentAgentId, agentType, model
   );
 }
@@ -19,7 +19,7 @@ export async function startAgent(
 export async function stopAgent(agentId: string): Promise<void> {
   const db = await getDb();
   await db.run(
-    `UPDATE agents SET status = 'stopped', ended_at = current_timestamp WHERE agent_id = ?`,
+    `UPDATE agents SET status = 'stopped', ended_at = now() WHERE agent_id = ?`,
     agentId
   );
 }
