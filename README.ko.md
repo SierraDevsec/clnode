@@ -205,6 +205,28 @@ templates/
 
 **기술 스택**: Node.js 22, TypeScript, Hono, DuckDB, React 19, Vite 7, TailwindCSS 4
 
+## 삭제
+
+프로젝트에서 clnode를 완전히 제거하려면:
+
+```bash
+# 1. 데몬 중지
+npx clnode stop
+
+# 2. hooks 설정 제거
+# .claude/settings.local.json 에서 "hooks" 섹션 삭제
+
+# 3. clnode 템플릿 제거 (선택)
+rm -rf .claude/agents/reviewer.md .claude/agents/worker.md
+rm -rf .claude/skills/compress-context .claude/skills/session-usage .claude/skills/clnode-agents
+rm -rf .claude/rules/clnode-usage.md
+
+# 4. clnode 데이터 제거 (선택 - 세션 히스토리 삭제)
+rm -rf ~/.npm/_npx/**/node_modules/clnode/data
+```
+
+**참고**: hooks 제거 후 Claude Code 세션을 재시작하세요.
+
 ## 이슈 및 피드백
 
 버그를 발견했거나 기능 요청이 있으신가요?
