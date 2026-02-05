@@ -50,13 +50,13 @@ Tell the user:
 
 ### Step 5: Post-Restart Verification
 
-After restart, when user enters a prompt, the system message should show:
-```
-[clnode project context]
-...
-```
+After restart, tell the user to try one of these:
 
-If this message appears, clnode is working correctly.
+1. **Check status**: Ask "clnode 상태 확인해줘" or run `npx clnode status`
+2. **Test worker agent**: Ask "worker 에이전트로 간단한 작업 해줘"
+3. **Open Web UI**: Run `npx clnode ui` to see the dashboard
+
+If any of these work, clnode is installed correctly!
 
 ---
 
