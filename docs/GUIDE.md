@@ -36,38 +36,27 @@ Claude Code에서 멀티에이전트를 돌릴 때, 에이전트끼리 결과를
 
 ## 설치
 
-### 1. 레포 클론
+Claude Code에서 다음 명령어를 실행하세요:
 
-```bash
-git clone https://github.com/SierraDevsec/clnode.git
-cd clnode
+```
+curl -s https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installation.md
 ```
 
-### 2. 의존성 설치
+Claude가 가이드를 읽고 자동으로 설치합니다.
+
+### 수동 설치
+
+자동 설치가 안 될 경우:
 
 ```bash
-pnpm install
+# 프로젝트 디렉토리에서
+npx clnode init .
+
+# 대시보드 열기
+npx clnode ui
 ```
 
-### 3. 빌드
-
-```bash
-pnpm build
-```
-
-이 명령은 TypeScript 컴파일 + Vite 웹 UI 빌드를 수행합니다. 결과물은 `dist/` 디렉토리에 생성됩니다.
-
-### 4. (선택) 전역 링크
-
-매번 `node dist/cli/index.js`를 치기 싫다면 전역 링크를 걸 수 있습니다:
-
-```bash
-pnpm link --global
-```
-
-이후부터 어디서든 `clnode` 명령어로 사용 가능합니다.
-
-> 전역 링크를 안 했다면 아래 예시의 `clnode`를 `node /path/to/clnode/dist/cli/index.js`로 대체하세요.
+> 개발자용 설치(git clone)는 [README](../README.md#for-development)를 참고하세요.
 
 ---
 

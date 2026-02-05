@@ -36,38 +36,27 @@ A plugin that solves the context explosion problem when running multi-agent mode
 
 ## Installation
 
-### 1. Clone the Repository
+Run this command in Claude Code:
 
-```bash
-git clone https://github.com/SierraDevsec/clnode.git
-cd clnode
+```
+curl -s https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installation.md
 ```
 
-### 2. Install Dependencies
+Claude will read the guide and install clnode automatically.
+
+### Manual Installation
+
+If automatic installation doesn't work:
 
 ```bash
-pnpm install
+# In your project directory
+npx clnode init .
+
+# Open dashboard
+npx clnode ui
 ```
 
-### 3. Build
-
-```bash
-pnpm build
-```
-
-This runs TypeScript compilation + Vite web UI build. Output goes to the `dist/` directory.
-
-### 4. (Optional) Global Link
-
-To avoid typing `node dist/cli/index.js` every time:
-
-```bash
-pnpm link --global
-```
-
-Now you can use the `clnode` command from anywhere.
-
-> If you didn't link globally, replace `clnode` in the examples below with `node /path/to/clnode/dist/cli/index.js`.
+> For developer installation (git clone), see [README](../README.md#for-development).
 
 ---
 
