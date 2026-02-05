@@ -6,23 +6,33 @@
 
 Execute the instructions in this guide step by step.
 
-### Step 1: Port Configuration
+### Step 1: Ask User for Installation Type
 
-Ask the user: "Would you like to specify a clnode daemon port? (default: 3100)"
-
-- If the user provides a port number → use that port
-- If the user says "default", "enter", or nothing → use 3100
+Ask the user:
+```
+clnode 설치 옵션을 선택하세요:
+1. 기본 설치 (reviewer, worker 에이전트) - "기본" 또는 "1"
+2. 전체 설치 (추가 에이전트 포함) - "전체" 또는 "2"
+3. 포트 지정 필요시 포트 번호도 알려주세요 (기본: 3100)
+```
 
 ### Step 2: Run Installation
 
-If using default port (3100):
+**Default installation** (user says "기본", "1", "default"):
 ```bash
 npx clnode init .
 ```
 
-If using a different port (e.g., 3101):
+**Full installation** (user says "전체", "2", "full", or wants all agents):
+```bash
+npx clnode init . --with-agents
+```
+
+**Custom port** (user specifies port number):
 ```bash
 npx clnode init . --port 3101
+# or with full agents:
+npx clnode init . --with-agents --port 3101
 ```
 
 ### Step 3: Verify Installation
