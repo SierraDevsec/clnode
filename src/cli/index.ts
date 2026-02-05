@@ -123,8 +123,9 @@ program
   .command("init [targetPath]")
   .description("Install lifecycle hooks and templates in the target project")
   .option("-p, --port <port>", "Daemon port (default: 3100)", String(CLNODE_PORT))
-  .option("--hooks-only", "Install hooks only, skip agent/skill/rule templates")
-  .action(async (targetPath: string | undefined, opts: { port?: string; hooksOnly?: boolean }) => {
+  .option("--hooks-only", "Install hooks only, skip all templates")
+  .option("--with-agents", "Include clnode-specific agent templates (for clnode development)")
+  .action(async (targetPath: string | undefined, opts: { port?: string; hooksOnly?: boolean; withAgents?: boolean }) => {
     const target = targetPath ? path.resolve(targetPath) : process.cwd();
     const projectName = path.basename(target);
     const projectId = projectName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
@@ -187,36 +188,48 @@ program
         console.log(`[clnode] ${skillCount} skill templates installed to ${skillsTargetDir}`);
       }
 
-      const agentsSourceDir = path.resolve(baseDir, "../../templates/agents");
-      const agentsTargetDir = path.join(claudeDir, "agents");
+      // Agents: only copy with --with-agents (clnode-specific)
+      if (opts.withAgents) {
+        const agentsSourceDir = path.resolve(baseDir, "../../templates/agents");
+        const agentsTargetDir = path.join(claudeDir, "agents");
 
-      if (fs.existsSync(agentsSourceDir)) {
-        fs.mkdirSync(agentsTargetDir, { recursive: true });
-        const agentFiles = fs.readdirSync(agentsSourceDir).filter((f: string) => f.endsWith(".md"));
-        for (const file of agentFiles) {
-          const dest = path.join(agentsTargetDir, file);
-          if (!fs.existsSync(dest)) {
-            fs.copyFileSync(path.join(agentsSourceDir, file), dest);
-            console.log(`[clnode] Agent template copied: ${file}`);
+        if (fs.existsSync(agentsSourceDir)) {
+          fs.mkdirSync(agentsTargetDir, { recursive: true });
+          const agentFiles = fs.readdirSync(agentsSourceDir).filter((f: string) => f.endsWith(".md"));
+          for (const file of agentFiles) {
+            const dest = path.join(agentsTargetDir, file);
+            if (!fs.existsSync(dest)) {
+              fs.copyFileSync(path.join(agentsSourceDir, file), dest);
+              console.log(`[clnode] Agent template copied: ${file}`);
+            }
           }
+          console.log(`[clnode] ${agentFiles.length} agent templates installed to ${agentsTargetDir}`);
         }
-        console.log(`[clnode] ${agentFiles.length} agent templates installed to ${agentsTargetDir}`);
       }
 
+      // Rules: always copy clnode-usage.md (universal), team.md only with --with-agents
       const rulesSourceDir = path.resolve(baseDir, "../../templates/rules");
       const rulesTargetDir = path.join(claudeDir, "rules");
 
       if (fs.existsSync(rulesSourceDir)) {
         fs.mkdirSync(rulesTargetDir, { recursive: true });
         const rulesFiles = fs.readdirSync(rulesSourceDir).filter((f: string) => f.endsWith(".md"));
+        let rulesCount = 0;
         for (const file of rulesFiles) {
+          // team.md is clnode-specific, skip unless --with-agents
+          if (file === "team.md" && !opts.withAgents) {
+            continue;
+          }
           const dest = path.join(rulesTargetDir, file);
           if (!fs.existsSync(dest)) {
             fs.copyFileSync(path.join(rulesSourceDir, file), dest);
             console.log(`[clnode] Rule template copied: ${file}`);
+            rulesCount++;
           }
         }
-        console.log(`[clnode] ${rulesFiles.length} rule templates installed to ${rulesTargetDir}`);
+        if (rulesCount > 0) {
+          console.log(`[clnode] ${rulesCount} rule templates installed to ${rulesTargetDir}`);
+        }
       }
     }
 
