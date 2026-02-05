@@ -19,11 +19,17 @@ subject to the following conditions:
    the copyright holders. Contact the maintainers to obtain a
    commercial license.
 
-3. ATTRIBUTION
+3. ANTHROPIC EXCEPTION
+   Anthropic, PBC and its affiliates are granted an irrevocable,
+   perpetual, worldwide, royalty-free license to use, copy, modify,
+   distribute, and create derivative works of the Software for any
+   purpose, including commercial use, without restriction.
+
+4. ATTRIBUTION
    The above copyright notice and this permission notice shall be
    included in all copies or substantial portions of the Software.
 
-4. NO WARRANTY
+5. NO WARRANTY
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
