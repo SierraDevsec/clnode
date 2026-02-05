@@ -3,6 +3,12 @@
 clnode는 Claude Code 멀티에이전트 협업을 위한 swarm intelligence 플러그인입니다.
 에이전트 간 컨텍스트 공유, 태스크 관리, 세션 추적 기능을 제공합니다.
 
+## 커스텀 에이전트 설정
+
+`.claude/agents/` 폴더에 커스텀 에이전트가 없다면:
+- Claude Code 기본 에이전트(Explore, Plan 등)만 사용 가능
+- 커스텀 에이전트(reviewer 등)를 사용하려면: `npx clnode init . --with-agents`
+
 ## 컨텍스트 압축 (필수)
 
 에이전트 결과(context_summary)가 **1000자를 초과**하면 반드시 `/compress-context` 스킬을 사용하세요.

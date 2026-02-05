@@ -296,6 +296,9 @@ program
     if (port !== "3100") {
       console.log(`[clnode] Using custom port: ${port}`);
     }
+    if (!opts.withAgents) {
+      console.log(`[clnode] Tip: For custom agents (reviewer, etc.), run: npx clnode init . --with-agents`);
+    }
   });
 
 // clnode logs
