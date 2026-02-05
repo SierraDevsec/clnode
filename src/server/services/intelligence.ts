@@ -177,7 +177,9 @@ export async function buildPromptContext(
     sections.push(`## Completed Agent Summaries\n${lines.join("\n")}`);
   }
 
-  if (sections.length === 0) return "";
+  if (sections.length === 0) {
+    return "[clnode project context]\n\n(No active tasks or agents)";
+  }
 
   return `[clnode project context]\n\n${sections.join("\n\n")}`;
 }
