@@ -143,3 +143,27 @@ brew install jq
 # Ubuntu/Debian
 sudo apt install jq
 ```
+
+---
+
+## Uninstall
+
+To completely remove clnode from your project:
+
+```bash
+# 1. Stop the daemon
+npx clnode stop
+
+# 2. Remove hooks from settings
+# Edit .claude/settings.local.json and remove the "hooks" section
+
+# 3. Remove clnode templates (optional)
+rm -rf .claude/agents/reviewer.md .claude/agents/worker.md
+rm -rf .claude/skills/compress-context .claude/skills/session-usage .claude/skills/clnode-agents
+rm -rf .claude/rules/clnode-usage.md
+
+# 4. Remove clnode data (optional - deletes all session history)
+rm -rf ~/.npm/_npx/**/node_modules/clnode/data
+```
+
+**Note**: After removing hooks, restart your Claude Code session.
