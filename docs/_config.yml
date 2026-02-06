@@ -24,3 +24,4 @@ footer_content: "clnode &copy; SierraDevsec. Source Available License."
 
 exclude:
   - screenshots/
+  - installation.md
