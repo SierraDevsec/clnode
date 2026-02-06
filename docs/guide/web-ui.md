@@ -40,14 +40,11 @@ The extension provides the same dashboard inside VSCode.
 
 ### Install
 
-```bash
-cd vscode-extension
-pnpm build
-pnpm package
-code --install-extension clnode-vscode-*.vsix --force
-```
+From the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=DeeJayL.clnode-vscode):
 
-Reload VSCode after installation (`Cmd+Shift+P` → "Developer: Reload Window").
+1. VSCode Extensions 탭에서 **"clnode for VSCode"** 검색
+2. Install 클릭
+3. Reload Window (`Cmd+Shift+P` → "Developer: Reload Window")
 
 ### Architecture
 

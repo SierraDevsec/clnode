@@ -1,12 +1,12 @@
 {
   "name": "clnode-vscode",
-  "displayName": "clnode",
+  "displayName": "clnode for VSCode",
   "description": "Claude Code swarm intelligence — agent monitoring, kanban board, and dashboard inside VSCode",
-  "version": "0.3.0",
-  "publisher": "clnode",
+  "version": "0.3.1",
+  "publisher": "DeeJayL",
   "repository": {
     "type": "git",
-    "url": "https://github.com/clnode/clnode"
+    "url": "https://github.com/SierraDevsec/clnode"
   },
   "icon": "resources/clnode-icon.png",
   "engines": {

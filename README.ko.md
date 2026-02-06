@@ -147,6 +147,8 @@ clnode는 hooks를 통해 Claude Code의 에이전트 라이프사이클 이벤�
 | **Tasks** | 5단계 칸반 보드 |
 | **Activity** | WebSocket 실시간 이벤트 로그 |
 
+VSCode Extension: [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=DeeJayL.clnode-vscode)에서 설치
+
 ## CLI
 
 ```bash
