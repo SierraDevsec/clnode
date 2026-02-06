@@ -1,7 +1,7 @@
 ---
 name: node-backend
 description: clnode backend development — Hono server, DuckDB, hook events, service layer, REST API, WebSocket
-tools: Read, Edit, Write, Bash, Grep, Glob, Task(summarizer)
+tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 memory: project
 skills:

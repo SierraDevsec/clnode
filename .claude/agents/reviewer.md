@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: clnode code reviewer — quality, security, and pattern consistency across server/DB/hook/CLI/UI
-tools: Read, Grep, Glob, Bash, Task(summarizer)
+tools: Read, Grep, Glob, Bash
 model: opus
 memory: project
 permissionMode: plan

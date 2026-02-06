@@ -8,8 +8,9 @@ tools:
   - Bash
   - Task(backend-dev)
   - Task(frontend-dev)
-  - Task(summarizer)
 model: opus
+skills:
+  - compress-output
 memory: project
 permissionMode: plan
 ---
@@ -34,11 +35,7 @@ You are a software architect responsible for system design and technical decisio
 
 ## Before Returning
 
-1. Compose your detailed work report internally (decisions, boundaries, contracts, risks)
-2. Spawn `Task(summarizer)` with your full report as the prompt
-3. Return ONLY the summarizer's compressed output as your final message
-
-This is critical for swarm health — your Leader and sibling agents receive your summary via `additionalContext`. Every extra character costs their working memory.
+`[COMPRESSED]` 마커를 포함한 압축 형식으로 반환하세요. compress-output 스킬 참고.
 
 ## Swarm Context (clnode)
 Record important context via `POST /hooks/PostContext` when applicable:

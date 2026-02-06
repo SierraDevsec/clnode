@@ -1,7 +1,7 @@
 ---
 name: react-frontend
 description: clnode Web UI development — React 19 + Vite 7 + TailwindCSS 4 dashboard, agent tree, context viewer
-tools: Read, Edit, Write, Bash, Grep, Glob, Task(summarizer)
+tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 memory: project
 skills:

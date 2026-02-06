@@ -1,7 +1,7 @@
 ---
 name: cli-hooks
 description: clnode CLI and hook system — commander.js CLI, hook.sh script, templates, init system
-tools: Read, Edit, Write, Bash, Grep, Glob, Task(summarizer)
+tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 memory: project
 skills:

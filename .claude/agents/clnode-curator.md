@@ -12,7 +12,6 @@ tools:
   - Glob
   - Bash
   - Task(reviewer)
-  - Task(summarizer)
 model: opus
 memory: project
 permissionMode: default
