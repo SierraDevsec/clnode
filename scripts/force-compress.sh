@@ -3,20 +3,28 @@
 #
 # Exit 0 = allow stop
 # Exit 2 = block stop (stderr → Claude feedback)
+#
+# Skips: non-SubagentStop events
 
 LOGFILE="/tmp/clnode-force-compress.log"
 INPUT=$(cat 2>/dev/null) || exit 0
 
-# Debug log
-echo "$(date): force-compress.sh invoked" >> "$LOGFILE"
-echo "INPUT: $INPUT" >> "$LOGFILE"
-
 # jq required
-command -v jq &>/dev/null || { echo "$(date): jq not found, pass through" >> "$LOGFILE"; exit 0; }
+command -v jq &>/dev/null || exit 0
+
+# Extract fields
+EVENT=$(echo "$INPUT" | jq -r '.hook_event_name // empty' 2>/dev/null)
+AGENT_ID=$(echo "$INPUT" | jq -r '.agent_id // empty' 2>/dev/null)
+echo "$(date): force-compress.sh invoked (event=$EVENT, agent=$AGENT_ID)" >> "$LOGFILE"
+
+# Only enforce compression for SubagentStop
+if [ "$EVENT" != "SubagentStop" ]; then
+  echo "$(date): skipping — not SubagentStop" >> "$LOGFILE"
+  exit 0
+fi
 
 # If already blocked once (stop_hook_active=true), allow through
 STOP_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null)
-echo "$(date): stop_hook_active=$STOP_ACTIVE" >> "$LOGFILE"
 if [ "$STOP_ACTIVE" = "true" ]; then
   echo "$(date): already blocked once, allowing through" >> "$LOGFILE"
   exit 0
@@ -24,7 +32,6 @@ fi
 
 # Check agent transcript for [COMPRESSED] marker
 TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.agent_transcript_path // empty' 2>/dev/null)
-echo "$(date): agent_transcript_path=$TRANSCRIPT_PATH" >> "$LOGFILE"
 if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
   if grep -q '\[COMPRESSED\]' "$TRANSCRIPT_PATH" 2>/dev/null; then
     echo "$(date): [COMPRESSED] marker found, allowing through" >> "$LOGFILE"
