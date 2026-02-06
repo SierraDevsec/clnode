@@ -60,6 +60,10 @@ Claude will read the guide and install clnode automatically.
 
 Install [clnode for VSCode](https://marketplace.visualstudio.com/items?itemName=DeeJayL.clnode-vscode) from the Marketplace.
 
+### Documentation
+
+[https://sierradevsec.github.io/clnode/](https://sierradevsec.github.io/clnode/)
+
 ### For Development
 
 ```bash
@@ -121,9 +125,6 @@ Every user prompt automatically receives:
 ## Web UI & VSCode Extension
 
 Real-time dashboard at `http://localhost:3100`, also available as a VSCode sidebar.
-
-**Dashboard** (stats, charts, token usage) · **Agents** (parent-child tree) · **Context** (full-text search) · **Tasks** (6-stage kanban) · **Activity** (live event log)
-
 Install the VSCode extension from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=DeeJayL.clnode-vscode).
 
 ## CLI
