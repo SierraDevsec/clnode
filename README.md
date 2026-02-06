@@ -53,13 +53,12 @@ Just ask Claude Code to run this:
 curl -s https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installation.md
 ```
 
+Claude will read the guide and install clnode automatically.
+**Restart your Claude Code session** after init — hooks activate on session start.
+
 ### For VS Code Users
 
 Install [clnode for VSCode](https://marketplace.visualstudio.com/items?itemName=DeeJayL.clnode-vscode) from the Marketplace.
-
-Claude will read the guide and install clnode automatically.
-
-**Restart your Claude Code session** after init — hooks activate on session start.
 
 ### For Development
 
@@ -88,7 +87,7 @@ Not just recent context — **relevant** context:
 
 ### Context Compression
 
-Automatic 2-layer output compression (skill + hook). Agents self-compress to 10-line `[COMPRESSED]` format. See [docs/compression-architecture.md](docs/compression-architecture.md).
+Automatic 2-layer output compression (skill + hook). Agents self-compress to 10-line `[COMPRESSED]` format. See [Compression](https://sierradevsec.github.io/clnode/guide/compression/).
 
 ### Token Analytics
 
