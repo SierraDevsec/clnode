@@ -1,10 +1,12 @@
 ---
 name: reviewer
 description: clnode code reviewer — quality, security, and pattern consistency across server/DB/hook/CLI/UI
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Task(summarizer)
 model: opus
+memory: project
+permissionMode: plan
 skills:
-  - compress-context
+  - compress-output
 ---
 
 # clnode Code Reviewer
@@ -49,17 +51,5 @@ skills:
 - No exposed secrets or hardcoded values
 
 ## Before Returning
-Return a **compressed summary** (max 300 chars):
-1. PASS/FAIL with reason (1 sentence)
-2. Critical issues count and brief description
-3. Suggestions count
 
-Do NOT return full review reports. Leader only needs concise summary.
-
-## On Completion
-Organize by priority:
-- **Critical** — must fix before merge
-- **Warning** — should fix
-- **Suggestion** — consider improving
-
-Include file paths and line numbers for each finding.
+`[COMPRESSED]` 마커를 포함한 압축 형식으로 반환하세요. compress-output 스킬 참고.

@@ -191,7 +191,7 @@ program
       // Agents: reviewer.md always (universal), others with --with-agents
       const agentsSourceDir = path.resolve(baseDir, "../../templates/agents");
       const agentsTargetDir = path.join(claudeDir, "agents");
-      const universalAgents = ["reviewer.md", "worker.md"];
+      const universalAgents = ["reviewer.md", "clnode-curator.md"];
 
       if (fs.existsSync(agentsSourceDir)) {
         fs.mkdirSync(agentsTargetDir, { recursive: true });
@@ -204,7 +204,12 @@ program
           }
           const dest = path.join(agentsTargetDir, file);
           if (!fs.existsSync(dest)) {
-            fs.copyFileSync(path.join(agentsSourceDir, file), dest);
+            // Replace HOOK_SCRIPT_PATH placeholder in agent templates
+            let content = fs.readFileSync(path.join(agentsSourceDir, file), "utf-8");
+            if (content.includes("HOOK_SCRIPT_PATH")) {
+              content = content.replaceAll("HOOK_SCRIPT_PATH", hookCommand);
+            }
+            fs.writeFileSync(dest, content);
             console.log(`[clnode] Agent template copied: ${file}`);
             agentCount++;
           }
@@ -238,6 +243,35 @@ program
         }
         if (rulesCount > 0) {
           console.log(`[clnode] ${rulesCount} rule templates installed to ${rulesTargetDir}`);
+        }
+      }
+
+      // Agent memory: seed MEMORY.md files for agents with memory: project
+      const memorySourceDir = path.resolve(baseDir, "../../templates/agent-memory");
+      const memoryTargetDir = path.join(claudeDir, "agent-memory");
+
+      if (fs.existsSync(memorySourceDir)) {
+        const memoryAgents = fs.readdirSync(memorySourceDir).filter((f: string) => {
+          return fs.statSync(path.join(memorySourceDir, f)).isDirectory();
+        });
+        // Only copy memory for agents that were actually installed
+        const installedAgents = fs.existsSync(agentsTargetDir)
+          ? fs.readdirSync(agentsTargetDir).map((f: string) => f.replace(".md", ""))
+          : [];
+        let memoryCount = 0;
+        for (const agent of memoryAgents) {
+          if (!installedAgents.includes(agent)) continue;
+          const srcFile = path.join(memorySourceDir, agent, "MEMORY.md");
+          const destDir = path.join(memoryTargetDir, agent);
+          const destFile = path.join(destDir, "MEMORY.md");
+          if (fs.existsSync(srcFile) && !fs.existsSync(destFile)) {
+            fs.mkdirSync(destDir, { recursive: true });
+            fs.copyFileSync(srcFile, destFile);
+            memoryCount++;
+          }
+        }
+        if (memoryCount > 0) {
+          console.log(`[clnode] ${memoryCount} agent memory seeds installed to ${memoryTargetDir}`);
         }
       }
     }

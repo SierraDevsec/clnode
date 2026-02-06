@@ -66,6 +66,23 @@ async function extractFromTranscript(transcriptPath: string): Promise<Transcript
   return result;
 }
 
+/** Rule-based compression for long summaries (no AI call) */
+function compressSummary(summary: string, maxLength = 1000): string {
+  if (summary.length <= maxLength) return summary;
+
+  // Strategy 1: Extract last "## Summary" or "## Completed Work" section
+  const sectionMatch = summary.match(/## (?:Summary|Completed Work|결과|완료)[^\n]*\n([\s\S]+?)(?=\n## |\n---|\Z)/i);
+  if (sectionMatch && sectionMatch[1].trim().length > 50) {
+    const extracted = sectionMatch[1].trim();
+    if (extracted.length <= maxLength) return extracted;
+  }
+
+  // Strategy 2: Take first 700 chars + ... + last 250 chars
+  const head = summary.slice(0, 700).trimEnd();
+  const tail = summary.slice(-250).trimStart();
+  return `${head}\n...\n${tail}`;
+}
+
 const hooks = new Hono();
 
 hooks.post("/:event", async (c) => {
@@ -143,6 +160,11 @@ hooks.post("/:event", async (c) => {
           }
           inputTokens = extraction.usage.input_tokens + extraction.usage.cache_read_input_tokens;
           outputTokens = extraction.usage.output_tokens;
+        }
+
+        // Auto-compress long summaries before storing
+        if (contextSummary) {
+          contextSummary = compressSummary(contextSummary);
         }
 
         if (agentId) {
@@ -242,6 +264,65 @@ hooks.post("/:event", async (c) => {
           broadcast("PostContext", { session_id: sessionId, entry_type: entryType });
         }
         return c.json({ ok: true });
+      }
+
+      case "TeammateIdle": {
+        const agentId = body.agent_id ?? null;
+        const agentName = body.agent_name ?? body.agent_type ?? "unknown";
+
+        if (agentId) {
+          // Update agent status to idle in DB
+          try {
+            const agent = await getAgent(agentId);
+            if (agent) {
+              await stopAgent(agentId, agent.context_summary ?? null, 0, 0);
+              await startAgent(agentId, sessionId, agentName, agent.agent_type ?? null, agent.parent_agent_id ?? null);
+            }
+          } catch {
+            // Agent may not exist in DB (teams mode — not started via SubagentStart)
+          }
+        }
+
+        await logActivity(sessionId, agentId, "TeammateIdle", { agent_name: agentName });
+        broadcast("TeammateIdle", { session_id: sessionId, agent_id: agentId, agent_name: agentName });
+        return c.json({});
+      }
+
+      case "TaskCompleted": {
+        const taskTitle = body.task_title ?? body.title ?? null;
+        const taskResult = body.result ?? null;
+        const agentId = body.agent_id ?? null;
+        const agentName = body.agent_name ?? body.agent_type ?? "unknown";
+
+        // Sync with clnode tasks table if task title matches
+        if (taskTitle) {
+          try {
+            // Find matching in-progress task by title/assigned agent
+            const inProgressTasks = await getInProgressTasksForAgent(sessionId, agentName);
+            for (const task of inProgressTasks) {
+              if (task.title?.toLowerCase().includes(taskTitle.toLowerCase()) ||
+                  taskTitle.toLowerCase().includes(task.title?.toLowerCase() ?? "")) {
+                await updateTask(task.id, { status: "completed" });
+                if (taskResult) {
+                  await addComment(task.id, agentName, "result", String(taskResult).slice(0, 500));
+                }
+                await addComment(task.id, "system", "status_change",
+                  `Completed via TaskCompleted event from ${agentName}`);
+                break;
+              }
+            }
+          } catch (err) {
+            console.error("[hooks/TaskCompleted] task sync failed:", err);
+          }
+        }
+
+        await logActivity(sessionId, agentId, "TaskCompleted", {
+          agent_name: agentName,
+          task_title: taskTitle,
+          result: taskResult ? String(taskResult).slice(0, 500) : null,
+        });
+        broadcast("TaskCompleted", { session_id: sessionId, agent_id: agentId, task_title: taskTitle });
+        return c.json({});
       }
 
       case "RegisterProject": {

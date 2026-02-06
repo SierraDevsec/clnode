@@ -1,10 +1,11 @@
 ---
 name: node-backend
 description: clnode backend development — Hono server, DuckDB, hook events, service layer, REST API, WebSocket
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task(summarizer)
 model: sonnet
+memory: project
 skills:
-  - compress-context
+  - compress-output
 ---
 
 # clnode Node.js Backend
@@ -52,9 +53,5 @@ src/server/
 - Test: `pnpm test`
 
 ## Before Returning
-Return a **compressed summary** (max 300 chars):
-1. What you accomplished (1 sentence)
-2. Key decisions or findings (1 sentence)
-3. Blockers/handoffs if any
 
-Do NOT return full reports. Leader only needs concise summary.
+`[COMPRESSED]` 마커를 포함한 압축 형식으로 반환하세요. compress-output 스킬 참고.

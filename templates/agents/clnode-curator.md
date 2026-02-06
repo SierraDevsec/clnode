@@ -13,6 +13,7 @@ tools:
   - Glob
   - Bash
   - Task(reviewer)
+  - Task(summarizer)
 model: opus
 memory: project
 permissionMode: default
@@ -120,12 +121,11 @@ Cross-reference DB decisions with agent memories for completeness.
 
 ## Before Returning
 
-Return a **compressed summary** (max 300 chars):
-1. Agents audited and total entries processed
-2. Key actions taken (promoted/removed/propagated count)
-3. Recommended next curation timing
+1. Compose your detailed curation report internally (audited agents, actions, promotions)
+2. Spawn `Task(summarizer)` with your full report as the prompt
+3. Return ONLY the summarizer's compressed output as your final message
 
-Do NOT return full curation details. Leader only needs the summary.
+This is critical for swarm health — your Leader and sibling agents receive your summary via `additionalContext`. Every extra character costs their working memory.
 
 ## Guidelines
 

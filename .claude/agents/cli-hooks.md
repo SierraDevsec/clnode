@@ -1,10 +1,11 @@
 ---
 name: cli-hooks
 description: clnode CLI and hook system — commander.js CLI, hook.sh script, templates, init system
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, Task(summarizer)
 model: sonnet
+memory: project
 skills:
-  - compress-context
+  - compress-output
 ---
 
 # clnode CLI & Hook System
@@ -52,9 +53,5 @@ templates/
 - prepublishOnly: `pnpm build`
 
 ## Before Returning
-Return a **compressed summary** (max 300 chars):
-1. What you accomplished (1 sentence)
-2. Key decisions or findings (1 sentence)
-3. Blockers/handoffs if any
 
-Do NOT return full reports. Leader only needs concise summary.
+`[COMPRESSED]` 마커를 포함한 압축 형식으로 반환하세요. compress-output 스킬 참고.
