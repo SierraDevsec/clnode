@@ -29,7 +29,8 @@ curl -s https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installa
 ```bash
 git clone https://github.com/SierraDevsec/clnode.git
 cd clnode && pnpm install && pnpm build
-npx clnode init .
+node dist/cli/index.js start
+node dist/cli/index.js init .
 ```
 
 ## Post-Install
