@@ -11,26 +11,11 @@ For additional agents:
 - **More agents**: `npx clnode init . --with-agents` (architect, backend-dev, etc.)
 - **Custom agent creation**: Use `/clnode-agents` skill
 
-## Context Compression (Required)
+## Context Compression (Automatic)
 
-When agent result (context_summary) exceeds **1000 characters**, you MUST use `/compress-context` skill.
+Agent output compression is handled automatically via the `compress-output` skill (preloaded in agent frontmatter). Agents self-compress to 10-line `[COMPRESSED]` format before returning results. The `force-compress.sh` hook enforces this as a safety net.
 
-```
-/compress-context
-```
-
-Without compression:
-- Leader agent's context explodes
-- Token waste and degraded response quality
-- Multi-agent chain breakdown risk
-
-## Session Token Usage
-
-To check current session's token usage and agent breakdown:
-
-```
-/session-usage
-```
+No manual intervention needed — compression is built into the agent lifecycle.
 
 ## Web UI
 
@@ -96,5 +81,5 @@ entry_type options:
 
 ### Agent Responsibilities
 - Report results concisely: **changed files + key decisions only**
-- Use `/compress-context` when exceeding 1000 chars
+- Output compression is automatic via compress-output skill
 - Report blockers immediately

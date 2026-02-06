@@ -127,9 +127,10 @@ clnode init /path/to/your/project --with-skills
 │   ├── reviewer.md
 │   ├── test-writer.md
 │   └── architect.md
-├── skills/           # 사용자 호출 스킬 (2개)
-│   ├── compress-context/SKILL.md
-│   └── usage/SKILL.md
+├── skills/           # 스킬 (3개)
+│   ├── compress-output/SKILL.md
+│   ├── compress-review/SKILL.md
+│   └── clnode-agents/SKILL.md
 └── rules/            # 자동 로드 규칙 (5개)
     ├── team.md
     ├── typescript.md
@@ -153,7 +154,7 @@ Claude Code는 세 가지 유형의 설정 파일을 지원합니다. 각각 다
 | 파일 위치 | 역할 | 로드 시점 | 내용 |
 |----------|------|----------|------|
 | `.claude/agents/*.md` | **에이전트 정의** | Task 도구로 에이전트 생성 시 | 메타데이터 (이름, 도구, 모델) + 기본 지침 |
-| `.claude/skills/*/SKILL.md` | **사용자 호출 스킬** | `/skill-name` 명령 호출 시 | `/usage`, `/compress-context` 같은 명령 |
+| `.claude/skills/*/SKILL.md` | **스킬** | `/skill-name` 호출 또는 에이전트 frontmatter 프리로드 | 에이전트 출력 압축, 에이전트 생성 가이드 |
 | `.claude/rules/*.md` | **자동 규칙** | 모든 대화에 자동 로드 | 프로젝트 전반 규칙, 컨벤션, 제약 |
 
 ### 예시로 보는 차이
@@ -173,7 +174,7 @@ Claude Code는 세 가지 유형의 설정 파일을 지원합니다. 각각 다
 ### 언제 무엇을 쓰나?
 
 - **rules**: 모든 대화에 항상 적용되어야 하는 규칙 (코드 스타일, 프로젝트 컨벤션)
-- **skills**: `/skill-name` 명령으로 호출하는 기능 (예: `/usage`, `/compress-context`)
+- **skills**: `/skill-name` 명령으로 호출하거나 에이전트 frontmatter에서 프리로드하는 기능 (예: compress-output, compress-review)
 - **agents**: 멀티에이전트 모드에서 Task 도구로 생성되는 에이전트의 정의
 
 ### clnode 제공 템플릿

@@ -104,7 +104,7 @@ clnode는 hooks를 통해 Claude Code의 에이전트 라이프사이클 이벤�
 
 ### 컨텍스트 압축
 
-`/compress-context` 스킬로 97%+ 압축 (31K → 2K chars). 멀티에이전트 체인에서 컨텍스트 폭발 방지.
+자동 2겹 출력 압축 (스킬 + 훅). 에이전트가 10줄 `[COMPRESSED]` 형식으로 자체 압축. [docs/compression-architecture.md](docs/compression-architecture.md) 참고.
 
 ### 토큰 분석
 
@@ -243,7 +243,7 @@ npx clnode stop
 
 # 3. clnode 템플릿 제거 (선택)
 rm -rf .claude/agents/reviewer.md .claude/agents/worker.md
-rm -rf .claude/skills/compress-context .claude/skills/session-usage .claude/skills/clnode-agents
+rm -rf .claude/skills/compress-output .claude/skills/compress-review .claude/skills/clnode-agents
 rm -rf .claude/rules/clnode-usage.md
 
 # 4. clnode 데이터 제거 (선택 - 세션 히스토리 삭제)

@@ -127,9 +127,10 @@ Copies agents, skills, and rules from the `templates/` directory to the project'
 │   ├── reviewer.md
 │   ├── test-writer.md
 │   └── architect.md
-├── skills/           # User-invoked skills (2)
-│   ├── compress-context/SKILL.md
-│   └── usage/SKILL.md
+├── skills/           # Skills (3)
+│   ├── compress-output/SKILL.md
+│   ├── compress-review/SKILL.md
+│   └── clnode-agents/SKILL.md
 └── rules/            # Auto-load rules (5)
     ├── team.md
     ├── typescript.md
@@ -153,7 +154,7 @@ Claude Code supports three types of configuration files, each with different rol
 | File Location | Role | When Loaded | Content |
 |--------------|------|-------------|---------|
 | `.claude/agents/*.md` | **Agent Definition** | When creating agent via Task tool | Metadata (name, tools, model) + basic instructions |
-| `.claude/skills/*/SKILL.md` | **User-invoked Skills** | When `/skill-name` command is called | Commands like `/usage`, `/compress-context` |
+| `.claude/skills/*/SKILL.md` | **Skills** | Via `/skill-name` command or agent frontmatter preload | Agent output compression, agent creation guide |
 | `.claude/rules/*.md` | **Auto Rules** | Auto-loaded in every conversation | Project-wide rules, conventions, constraints |
 
 ### Differences by Example
@@ -173,7 +174,7 @@ Claude Code supports three types of configuration files, each with different rol
 ### When to Use What?
 
 - **rules**: Rules that should always apply to every conversation (code style, project conventions)
-- **skills**: Commands invoked via `/skill-name` (e.g., `/usage`, `/compress-context`)
+- **skills**: Invoked via `/skill-name` or preloaded in agent frontmatter (e.g., compress-output, compress-review)
 - **agents**: Definitions for agents created via the Task tool in multi-agent mode
 
 ### clnode-Provided Templates

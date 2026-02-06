@@ -55,7 +55,7 @@ After restart, tell the user to try one of these:
 1. **Check status**: Ask "clnode 상태 확인해줘" or run `npx clnode status`
 2. **Test worker agent**:
    ```
-   worker 에이전트로 CLAUDE.md 만들어줘. 이 프로젝트에서 사용 가능한 clnode 에이전트(reviewer, worker)와 스킬(/compress-context, /session-usage, /clnode-agents) 설명을 작성해줘.
+   worker 에이전트로 CLAUDE.md 만들어줘. 이 프로젝트에서 사용 가능한 clnode 에이전트(reviewer, worker)와 스킬(/clnode-agents) 설명을 작성해줘.
    ```
 3. **Open Web UI**: Run `npx clnode ui` to see the dashboard and spawned agents
 
@@ -76,8 +76,8 @@ If any of these work, clnode is installed correctly!
 **Skills (`.claude/skills/`)**
 | Skill | Purpose |
 |-------|---------|
-| compress-context | Compress long agent context |
-| session-usage | Session token usage analysis |
+| compress-output | Agent output compression (10-line limit) |
+| compress-review | Reviewer output compression (20-line limit) |
 | clnode-agents | Custom agent creation guide |
 
 **Rules (`.claude/rules/`)**
@@ -159,7 +159,7 @@ npx clnode stop
 
 # 3. Remove clnode templates (optional)
 rm -rf .claude/agents/reviewer.md .claude/agents/worker.md
-rm -rf .claude/skills/compress-context .claude/skills/session-usage .claude/skills/clnode-agents
+rm -rf .claude/skills/compress-output .claude/skills/compress-review .claude/skills/clnode-agents
 rm -rf .claude/rules/clnode-usage.md
 
 # 4. Remove clnode data (optional - deletes all session history)

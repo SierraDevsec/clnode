@@ -19,7 +19,7 @@ Using Claude Code's built-in features — **hooks**, **agents**, **skills**, and
 
 - **hooks** intercept agent lifecycle events and route context through DuckDB
 - **agents** define subagent roles (backend-dev, reviewer, etc.)
-- **skills** provide user-invoked commands (/compress-context, /usage)
+- **skills** provide user-invoked commands and agent-preloaded behaviors (/compress-output, /compress-review)
 - **rules** enforce project-wide conventions (auto-loaded every conversation)
 - **DuckDB** acts as shared memory between agents (the communication channel)
 
@@ -95,7 +95,7 @@ vscode-extension/       — VSCode Extension (독립 패키지)
 templates/
   hooks-config.json     — Hooks config template
   agents/               — 7 agent role definitions (clnode-curator, backend-dev, frontend-dev, reviewer, etc.)
-  skills/               — User-invoked skills (/compress-context, /usage)
+  skills/               — Skills (compress-output, compress-review, clnode-agents)
   rules/                — Swarm context rules (team, typescript, react, nodejs)
 ```
 

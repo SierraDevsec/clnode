@@ -31,8 +31,8 @@ Role description
 ## Output Format
 How to format the results
 
-## Context Compression
-Use `/compress-context` skill when results exceed 1000 characters.
+## Output Compression
+Add `skills: [compress-output]` to agent frontmatter for automatic output compression.
 ```
 
 ## Using Agents

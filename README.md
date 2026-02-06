@@ -104,7 +104,7 @@ Not just recent context — **relevant** context:
 
 ### Context Compression
 
-97%+ compression via `/compress-context` skill (31K → 2K chars). Prevents context explosion in multi-agent chains.
+Automatic 2-layer output compression (skill + hook). Agents self-compress to 10-line `[COMPRESSED]` format. See [docs/compression-architecture.md](docs/compression-architecture.md).
 
 ### Token Analytics
 
@@ -243,7 +243,7 @@ npx clnode stop
 
 # 3. Remove clnode templates (optional)
 rm -rf .claude/agents/reviewer.md .claude/agents/worker.md
-rm -rf .claude/skills/compress-context .claude/skills/session-usage .claude/skills/clnode-agents
+rm -rf .claude/skills/compress-output .claude/skills/compress-review .claude/skills/clnode-agents
 rm -rf .claude/rules/clnode-usage.md
 
 # 4. Remove clnode data (optional - deletes all session history)
