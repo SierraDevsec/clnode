@@ -21,7 +21,7 @@ nav_order: 1
 
 Ask Claude Code:
 ```
-Fetch https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installation.md and follow the instructions to install clnode.
+curl -s https://raw.githubusercontent.com/SierraDevsec/clnode/main/docs/installation.md
 ```
 
 ### Quick Install

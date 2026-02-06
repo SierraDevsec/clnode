@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="https://sierraDevsec.github.io/clnode/">Docs</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#features">Features</a> •
   <a href="#cli">CLI</a>
@@ -23,7 +24,6 @@
 </table>
 
 <p align="center">
-  <a href="https://sierraDevsec.github.io/clnode/">Docs</a> •
   <a href="./README.ko.md">한국어</a> •
   <a href="./README.md">English</a>
 </p>
