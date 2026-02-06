@@ -31,13 +31,5 @@ No wrapper. No custom framework. Just a plugin that fills the gap.
 - **6-Stage Kanban** — Visual task tracking with auto status updates
 - **Web UI & VSCode Extension** — Real-time dashboard
 
-## Quick Install
-
-```bash
-npx clnode init .
-```
-
-Then restart your Claude Code session.
-
 [Get Started](getting-started){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [View on GitHub](https://github.com/SierraDevsec/clnode){: .btn .fs-5 .mb-4 .mb-md-0 }
