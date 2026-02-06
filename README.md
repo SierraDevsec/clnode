@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/screenshots/01-dashboard.png" alt="clnode Dashboard" width="800">
-</p>
-
 <h1 align="center">clnode</h1>
 
 <p align="center">
@@ -11,16 +7,24 @@
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> •
-  <a href="#how-it-works">How It Works</a> •
   <a href="#features">Features</a> •
-  <a href="#web-ui">Web UI</a> •
   <a href="#cli">CLI</a>
 </p>
 
+<table>
+  <tr>
+    <td align="center"><strong>Web UI</strong> (<code>localhost:3100</code>)</td>
+    <td align="center"><strong>VSCode Extension</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/web-ui.png" alt="Web UI" width="400"></td>
+    <td><img src="docs/screenshots/vscode-extension.png" alt="VSCode Extension" width="400"></td>
+  </tr>
+</table>
+
 <p align="center">
   <a href="./README.ko.md">한국어</a> •
-  <a href="./docs/GUIDE.en.md">User Guide</a> •
-  <a href="./docs/GUIDE.md">사용 가이드 (한국어)</a>
+  <a href="./README.md">English</a>
 </p>
 
 ---
@@ -112,19 +116,9 @@ Every user prompt automatically receives:
 
 ## Web UI & VSCode Extension
 
-Real-time dashboard at `http://localhost:3100`, also available as a VSCode sidebar:
+Real-time dashboard at `http://localhost:3100`, also available as a VSCode sidebar.
 
-| Web UI (`localhost:3100`) | VSCode Extension |
-|:-:|:-:|
-| ![Web UI](docs/screenshots/web-ui.png) | ![VSCode](docs/screenshots/vscode-extension.png) |
-
-| Page | Description |
-|------|-------------|
-| **Dashboard** | Stats, charts, token usage, active sessions |
-| **Agents** | Agent tree with parent-child hierarchy |
-| **Context** | Full-text search across entries |
-| **Tasks** | 6-stage kanban board |
-| **Activity** | Live event log via WebSocket |
+**Dashboard** (stats, charts, token usage) · **Agents** (parent-child tree) · **Context** (full-text search) · **Tasks** (6-stage kanban) · **Activity** (live event log)
 
 ## CLI
 
